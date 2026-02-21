@@ -50,7 +50,6 @@ export function TodaysDiary({ docId, accessToken }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const compactRef = useRef<HTMLDivElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -72,16 +71,6 @@ export function TodaysDiary({ docId, accessToken }: Props) {
       compactRef.current.scrollTop = compactRef.current.scrollHeight;
     }
   }, [paragraphs]);
-
-  // モーダル: 開いたあと最下部へスクロール（アニメーション後に実行）
-  useEffect(() => {
-    if (!modalOpen) return;
-    const el = modalRef.current;
-    if (!el) return;
-    requestAnimationFrame(() => {
-      el.scrollTop = el.scrollHeight;
-    });
-  }, [modalOpen]);
 
   if (loading) {
     return <p className="text-muted-foreground text-sm">読み込み中...</p>;
@@ -130,7 +119,7 @@ export function TodaysDiary({ docId, accessToken }: Props) {
           <DialogHeader>
             <DialogTitle>{heading}</DialogTitle>
           </DialogHeader>
-          <div ref={modalRef} className="min-h-0 flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {paragraphs.length === 0 ? (
               <p className="text-muted-foreground text-sm">
                 まだ記録がありません。
