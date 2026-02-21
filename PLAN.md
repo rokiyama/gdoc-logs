@@ -35,30 +35,16 @@ Google Docs をつぶやき日記として使う個人用 SPA。
 - `src/hooks/useSelectedDoc.ts` — 選択ドキュメント（localStorage 永続化）
 - `src/lib/storage.ts` — localStorage ヘルパー
 - `src/lib/google-drive.ts` — `listDocs()`（現在は未使用、Picker に移行済み）
-- `src/lib/google-docs.ts` — `appendTextToDoc()` / `readDoc()` / `extractContentAfterLastH2()`（後2つは stub）
+- `src/lib/google-docs.ts` — `appendTextToDoc()` / `readDoc()` / `extractContentAfterLastH2()`
 - `src/lib/google-picker.ts` — Google Picker を開くユーティリティ
 - `src/components/AuthButton.tsx` — Google ログイン/ログアウトボタン
-- `src/components/DocSelector.tsx` — Picker を開くボタン（ドロップダウンではない）
+- `src/components/DocSelector.tsx` — Picker を開くボタン
 - `src/components/EntryForm.tsx` — テキスト入力 + 追記ボタン（Cmd+Enter 対応）
 
 **OAuth スコープ**
 
 - `https://www.googleapis.com/auth/documents`
   - 注意: `drive.file` スコープは Docs API batchUpdate で 404 が返り使用不可（既に確認済み）
-
-**追記の API 呼び出し**
-
-```
-POST https://docs.googleapis.com/v1/documents/{docId}:batchUpdate
-{
-  "requests": [{
-    "insertText": {
-      "text": "<text>\n",
-      "endOfSegmentLocation": { "segmentId": "" }
-    }
-  }]
-}
-```
 
 **必要な環境変数**
 
@@ -72,7 +58,7 @@ VITE_GOOGLE_API_KEY=...                               # Google Picker 用 API �
 ### Step 1-2: ESLint + Prettier 設定 ✅ 完了
 
 - `prettier.config.js` — sort-imports / tailwindcss / classnames / merge プラグイン。`singleQuote` は未設定（デフォルトのダブルクォート）
-- `.prettierignore` — `dist`, `node_modules`, `pnpm-lock.yaml` を除外
+- `.prettierignore` — `dist`, `node_modules`, `pnpm-lock.yaml`, `.serena` を除外
 - `eslint.config.js` — react / better-tailwindcss / eslint-config-prettier を追加。`src/components/ui/**` は shadcn/ui 生成コードのため一部ルールをオフ
 - `tsconfig.app.json` — `noUnusedLocals` / `noUnusedParameters` を削除（ESLint の warn に委譲）
 - `package.json` — `format` / `format:check` スクリプトを追加
@@ -81,6 +67,8 @@ VITE_GOOGLE_API_KEY=...                               # Google Picker 用 API �
 
 - `prettier-plugin-classnames` + `singleQuote: true` の組み合わせで shadcn/ui の `button.tsx` のネストしたクォートをパースできずクラッシュ。`singleQuote` を削除することで解消。
 - ESLint flat config では、ルールオーバーライドブロックをメインブロックの**後**に置かないと上書きされない。
+- `react-hooks/set-state-in-effect` ルール: `useEffect` 内で `setState` を同期呼び出しするとエラー。state を判別共用体（`null | {ok:true,...} | {ok:false,...}`）にまとめ、setState は `.then()` / `.catch()` の非同期コールバック内のみで呼ぶことで解消。
+- Tailwind v4 での短縮記法: `h-* w-*` → `size-*`、`text-sm leading-relaxed` → `text-sm/relaxed`（`leading-relaxed` 自体は v4 でも使用可能）
 
 ---
 
@@ -96,120 +84,35 @@ VITE_GOOGLE_API_KEY=...                               # Google Picker 用 API �
    - `VITE_GOOGLE_API_KEY`
    - ※ `VITE_*` はビルド時に JS バンドルに埋め込まれ公開されるため secrets ではなく variables で正しい
 
-**作成ファイル: `.github/workflows/deploy.yml`**（`main` push または手動実行でデプロイ）
+**`.github/workflows/deploy.yml`** — `main` push または手動実行でデプロイ。ステップ順: `format:check` → `lint` → `build`（いずれか失敗でデプロイ停止）
 
 **動作確認済み**: PC・スマホ両方で正常動作、モバイルレイアウトも問題なし。
 
 ---
 
-### Step 2: 今日の内容表示（未着手）
+### Step 2: 直近のログ表示 ✅ 完了
 
-**やること**
-`src/components/TodaysDiary.tsx` を新規作成し、`App.tsx` に追加するだけ。
-`src/lib/google-docs.ts` に `readDoc` と `extractContentAfterLastH2` の stub が既にあるので、中身を実装する。
+- `src/components/TodaysDiary.tsx` — 新規作成
+- `src/components/ui/dialog.tsx` — shadcn Dialog を追加
 
-**アルゴリズム（最後の H2 以降のテキスト抽出）**
+**表示仕様**
+
+- App.tsx で「直近のログ」カードとして EntryForm の**上**に配置
+- コンパクト表示: `max-h-28 overflow-y-auto`、データ読み込み後に最下部へ自動スクロール
+- `Maximize2` アイコンボタン（ラベルなし）でモーダルを開き全文表示
+
+**アルゴリズム**
 
 1. `GET https://docs.googleapis.com/v1/documents/{docId}` でドキュメント取得
-2. `body.content` 配列を走査
-3. `paragraph.paragraphStyle.namedStyleType === "HEADING_2"` の最後のインデックスを特定
-4. それ以降の `paragraph` 要素を収集
-5. 各 paragraph の `elements[].textRun.content` を結合（末尾 `\n` を除去）
-6. 空でない文字列の配列を返す
-
-**Google Docs JSON 構造（抜粋）**
-
-```json
-{
-  "body": {
-    "content": [
-      {
-        "paragraph": {
-          "elements": [{ "textRun": { "content": "2026-02-21\n" } }],
-          "paragraphStyle": { "namedStyleType": "HEADING_2" }
-        }
-      },
-      {
-        "paragraph": {
-          "elements": [{ "textRun": { "content": "日記の内容\n" } }],
-          "paragraphStyle": { "namedStyleType": "NORMAL_TEXT" }
-        }
-      }
-    ]
-  }
-}
-```
-
-**実装する関数（`src/lib/google-docs.ts` の stub を完成させる）**
-
-```typescript
-export async function readDoc(
-  docId: string,
-  accessToken: string,
-): Promise<GDocsDocument> {
-  const res = await fetch(`https://docs.googleapis.com/v1/documents/${docId}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!res.ok) throw new Error(`Docs read error: ${res.status}`);
-  return res.json();
-}
-
-export function extractContentAfterLastH2(doc: GDocsDocument): string[] {
-  const elements = doc.body.content;
-  let lastH2Index = -1;
-  for (let i = 0; i < elements.length; i++) {
-    if (elements[i].paragraph?.paragraphStyle?.namedStyleType === "HEADING_2") {
-      lastH2Index = i;
-    }
-  }
-  if (lastH2Index === -1) return [];
-  const result: string[] = [];
-  for (let i = lastH2Index + 1; i < elements.length; i++) {
-    const el = elements[i];
-    if (!el.paragraph) continue;
-    const text = el.paragraph.elements
-      .map((pe: ParagraphElement) => pe.textRun?.content ?? "")
-      .join("")
-      .replace(/\n$/, "");
-    if (text.trim()) result.push(text);
-  }
-  return result;
-}
-```
-
-**TodaysDiary コンポーネント骨格（新規作成）**
-
-```tsx
-// src/components/TodaysDiary.tsx
-function TodaysDiary({ docId, accessToken }: { docId: string; accessToken: string }) {
-  const [heading, setHeading] = useState("");
-  const [paragraphs, setParagraphs] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    readDoc(docId, accessToken)
-      .then((doc) => {
-        // 最後の H2 テキストを heading に設定
-        // extractContentAfterLastH2(doc) を paragraphs に設定
-      })
-      .finally(() => setLoading(false));
-  }, [docId, accessToken]);
-
-  return (/* shadcn Card で表示 */);
-}
-```
-
-**App.tsx への追加箇所**
-
-- selectedDoc がある場合、`<EntryForm>` の下に `<TodaysDiary docId={selectedDoc.id} accessToken={accessToken} />` を追加
+2. `body.content` を走査し `namedStyleType === "HEADING_2"` の最後のインデックスを特定
+3. それ以降の paragraph の `textRun.content` を収集、末尾 `\n` を除去
 
 ---
 
 ### Step 3: 音声入力（OpenAI Whisper API）（未着手）
 
 **やること**
-`EntryForm.tsx` に録音ボタンを追加するだけ。既存フォームの変更は最小限。
+`EntryForm.tsx` に `VoiceButton` コンポーネントを追加するだけ。既存フォームの変更は最小限。
 
 **必要な追加環境変数**
 
@@ -224,76 +127,11 @@ VITE_OPENAI_API_KEY=sk-...
 1. 「録音」ボタン押下 → `navigator.mediaDevices.getUserMedia({ audio: true })`
 2. `MediaRecorder` で録音開始（`audio/webm` 形式）
 3. 「停止」ボタン押下 → `ondataavailable` で `Blob` を収集
-4. OpenAI API に送信:
+4. `POST https://api.openai.com/v1/audio/transcriptions` に送信
+   - `model: whisper-1`, `language: ja`, `response_format: text`
+   - `Authorization: Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+5. レスポンスのテキストを `<Textarea>` の value に設定（ユーザーが編集してから送信）
 
-   ```
-   POST https://api.openai.com/v1/audio/transcriptions
-   Content-Type: multipart/form-data
-   Authorization: Bearer <VITE_OPENAI_API_KEY>
-
-   file: <Blob> (filename: "audio.webm")
-   model: whisper-1
-   language: ja
-   response_format: text
-   ```
-
-5. レスポンスのテキストを `<Textarea>` の value に設定（ユーザーが編集してから送信できる）
-
-**VoiceButton コンポーネント骨格（EntryForm.tsx に組み込む）**
-
-```tsx
-function VoiceButton({
-  onTranscript,
-}: {
-  onTranscript: (text: string) => void;
-}) {
-  const [recording, setRecording] = useState(false);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-
-  async function startRecording() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    chunksRef.current = [];
-    const recorder = new MediaRecorder(stream);
-    recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
-    recorder.onstop = async () => {
-      const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-      const formData = new FormData();
-      formData.append("file", blob, "audio.webm");
-      formData.append("model", "whisper-1");
-      formData.append("language", "ja");
-      formData.append("response_format", "text");
-      const res = await fetch(
-        "https://api.openai.com/v1/audio/transcriptions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
-          },
-          body: formData,
-        },
-      );
-      const text = await res.text();
-      onTranscript(text);
-    };
-    recorderRef.current = recorder;
-    recorder.start();
-    setRecording(true);
-  }
-
-  function stopRecording() {
-    recorderRef.current?.stop();
-    setRecording(false);
-  }
-
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      onClick={recording ? stopRecording : startRecording}
-    >
-      {recording ? "停止" : "録音"}
-    </Button>
-  );
-}
-```
+**EntryForm.tsx への組み込み**
+- `VoiceButton` を同ファイル内に定義し、Textarea の下・送信ボタンの横に配置
+- `onTranscript` コールバックで受け取ったテキストを `setText()` にセット
