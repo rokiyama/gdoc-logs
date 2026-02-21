@@ -38,7 +38,7 @@ export default function App() {
 
   return (
     <div
-      className="bg-background flex min-h-dvh flex-col
+      className="bg-background flex h-dvh flex-col
         pb-[env(safe-area-inset-bottom)]"
     >
       {/* ヘッダー */}
