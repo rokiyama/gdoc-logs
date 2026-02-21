@@ -1,35 +1,68 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Toaster } from '@/components/ui/sonner'
+import { AuthButton } from '@/components/AuthButton'
+import { DocSelector } from '@/components/DocSelector'
+import { EntryForm } from '@/components/EntryForm'
+import { useAuth } from '@/hooks/useAuth'
+import { useSelectedDoc } from '@/hooks/useSelectedDoc'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const { accessToken, setToken, clearToken } = useAuth()
+  const { selectedDoc, selectDoc } = useSelectedDoc()
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="min-h-screen bg-background flex items-start justify-center pt-16 px-4">
+      <div className="w-full max-w-xl space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold">gdoc-logs</h1>
+          <AuthButton
+            isLoggedIn={!!accessToken}
+            onLogin={setToken}
+            onLogout={clearToken}
+          />
+        </div>
+
+        {!accessToken ? (
+          <p className="text-muted-foreground text-sm">
+            Google でサインインすると Google Docs に追記できます。
+          </p>
+        ) : (
+          <div className="space-y-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">ドキュメント選択</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DocSelector
+                  accessToken={accessToken}
+                  selectedDoc={selectedDoc}
+                  onSelect={selectDoc}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">
+                  {selectedDoc ? selectedDoc.name : '追記'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EntryForm
+                  accessToken={accessToken}
+                  selectedDoc={selectedDoc}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+      <Toaster />
+    </div>
   )
 }
-
-export default App
