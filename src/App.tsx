@@ -1,31 +1,39 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import { Menu, Pencil, RefreshCw } from "lucide-react";
+import {
+  FileText,
+  LogOut,
+  MoreHorizontal,
+  Pencil,
+  RefreshCw,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { ComposeOverlay } from "@/components/ComposeOverlay";
-import { DocSelector } from "@/components/DocSelector";
 import { TodaysDiary } from "@/components/TodaysDiary";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useSelectedDoc } from "@/hooks/useSelectedDoc";
+import { openGooglePicker } from "@/lib/google-picker";
 
 const SCOPES = "https://www.googleapis.com/auth/documents";
 
 export default function App() {
   const { accessToken, setToken, clearToken } = useAuth();
   const { selectedDoc, selectDoc } = useSelectedDoc();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [composeOpen, setComposeOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentHeading, setCurrentHeading] = useState<string | null>(null);
   // 手動リロード時のみトーストを出すためのフラグ
   const isManualRefresh = useRef(false);
 
@@ -57,6 +65,25 @@ export default function App() {
     setRefreshKey((k) => k + 1);
   }
 
+  // ドキュメント選択（Picker）
+  async function handlePickDoc() {
+    if (!accessToken) return;
+    try {
+      const file = await openGooglePicker(
+        accessToken,
+        import.meta.env.VITE_GOOGLE_API_KEY as string,
+      );
+      if (file) {
+        setCurrentHeading(null);
+        selectDoc(file.id, file.name);
+      }
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : "ドキュメントを選択できませんでした",
+      );
+    }
+  }
+
   // 画面復帰時（タブ切り替え・スリープ復帰）に最新データを取得
   useEffect(() => {
     function handleVisibilityChange() {
@@ -78,14 +105,13 @@ export default function App() {
     >
       {/* ヘッダー */}
       <header
-        className="bg-background sticky top-0 z-10 flex h-14 shrink-0
-          items-center justify-between border-b px-4
-          pt-[env(safe-area-inset-top)]"
+        className="bg-background/80 sticky top-0 z-10 shrink-0 border-b px-2
+          pt-[env(safe-area-inset-top)] backdrop-blur-md"
       >
-        <h1 className="text-base font-semibold">gdoc-logs</h1>
-        {accessToken ? (
-          <div className="flex items-center">
-            {selectedDoc && (
+        <div className="grid min-h-14 grid-cols-3 items-center py-1">
+          {/* 左: リロードボタン */}
+          <div className="flex justify-start">
+            {accessToken && selectedDoc && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -97,18 +123,63 @@ export default function App() {
                 />
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMenuOpen(true)}
-              aria-label="メニューを開く"
-            >
-              <Menu className="size-5" />
-            </Button>
           </div>
-        ) : (
-          <Button onClick={() => login()}>Sign in with Google</Button>
-        )}
+
+          {/* 中央: タイトル + サブタイトル */}
+          <div className="flex flex-col items-center justify-center">
+            <span className="text-sm font-semibold">gdoc-logs</span>
+            {currentHeading && (
+              <span className="text-muted-foreground text-xs">
+                {currentHeading}のログ
+              </span>
+            )}
+          </div>
+
+          {/* 右: ミートボールメニュー or サインインボタン */}
+          <div className="flex justify-end">
+            {accessToken ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="メニューを開く"
+                  >
+                    <MoreHorizontal className="size-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {selectedDoc && (
+                    <DropdownMenuLabel
+                      className="text-muted-foreground max-w-56 truncate
+                        font-normal"
+                    >
+                      {selectedDoc.name}
+                    </DropdownMenuLabel>
+                  )}
+                  <DropdownMenuItem onClick={() => void handlePickDoc()}>
+                    <FileText className="size-4" />
+                    {selectedDoc ? "ドキュメントを変更" : "ドキュメントを選択"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      clearToken();
+                      setCurrentHeading(null);
+                    }}
+                  >
+                    <LogOut className="size-4" />
+                    サインアウト
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button onClick={() => login()} size="sm">
+                Googleでログイン
+              </Button>
+            )}
+          </div>
+        </div>
       </header>
 
       {/* メインコンテンツ */}
@@ -127,6 +198,7 @@ export default function App() {
             accessToken={accessToken}
             refreshKey={refreshKey}
             onLoaded={handleLoaded}
+            onHeadingChange={setCurrentHeading}
           />
         )}
       </main>
@@ -142,36 +214,6 @@ export default function App() {
       >
         <Pencil className="size-5" />
       </Button>
-
-      {/* ハンバーガーメニュー（Sheet） */}
-      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetContent side="right" className="w-72">
-          <SheetHeader>
-            <SheetTitle>設定</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6 space-y-6 px-1">
-            <DocSelector
-              accessToken={accessToken ?? ""}
-              apiKey={import.meta.env.VITE_GOOGLE_API_KEY}
-              selectedDoc={selectedDoc}
-              onSelect={(id, name) => {
-                selectDoc(id, name);
-                setMenuOpen(false);
-              }}
-            />
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                clearToken();
-                setMenuOpen(false);
-              }}
-            >
-              Sign out
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
 
       {/* 投稿オーバーレイ */}
       {composeOpen && accessToken && selectedDoc && (

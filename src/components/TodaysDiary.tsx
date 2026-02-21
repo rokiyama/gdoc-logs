@@ -8,6 +8,7 @@ interface Props {
   accessToken: string;
   refreshKey: number;
   onLoaded?: () => void;
+  onHeadingChange?: (heading: string) => void;
 }
 
 type FetchState =
@@ -45,6 +46,7 @@ export function TodaysDiary({
   accessToken,
   refreshKey,
   onLoaded,
+  onHeadingChange,
 }: Props) {
   const [state, setState] = useState<FetchState>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -55,11 +57,10 @@ export function TodaysDiary({
     readDoc(docId, accessToken)
       .then((doc) => {
         if (!cancelled) {
-          setState({
-            ok: true,
-            heading: getLastH2Text(doc),
-            paragraphs: extractContentAfterLastH2(doc),
-          });
+          const heading = getLastH2Text(doc);
+          const paragraphs = extractContentAfterLastH2(doc);
+          setState({ ok: true, heading, paragraphs });
+          onHeadingChange?.(heading);
           onLoaded?.();
         }
       })
@@ -77,7 +78,7 @@ export function TodaysDiary({
     return () => {
       cancelled = true;
     };
-  }, [docId, accessToken, refreshKey, onLoaded]);
+  }, [docId, accessToken, refreshKey, onLoaded, onHeadingChange]);
 
   // データ読み込み後に最下部へスクロール
   useEffect(() => {

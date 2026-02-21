@@ -36,7 +36,7 @@ export function DocSelector({
 
   return (
     <div className="space-y-2">
-      <Label>追記先のドキュメント</Label>
+      <Label>選択中のドキュメント</Label>
       {selectedDoc && (
         <p className="truncate text-sm font-medium" title={selectedDoc.name}>
           {selectedDoc.name}
