@@ -1,8 +1,9 @@
 import { useGoogleLogin } from '@react-oauth/google'
 import { Button } from '@/components/ui/button'
 
-// drive.file: ユーザーが明示的に選択したファイルのみにアクセス（最小権限）
-const SCOPES = 'https://www.googleapis.com/auth/drive.file'
+// documents: Docs API の読み書きに必須。
+// drive.file だけでは Picker 選択後も Docs API が 404 を返すため使用できない。
+const SCOPES = 'https://www.googleapis.com/auth/documents'
 
 interface Props {
   onLogin: (token: string) => void
