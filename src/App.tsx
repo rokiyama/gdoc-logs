@@ -43,7 +43,8 @@ export default function App() {
     >
       {/* ヘッダー */}
       <header
-        className="flex h-14 shrink-0 items-center justify-between border-b px-4
+        className="bg-background sticky top-0 z-10 flex h-14 shrink-0
+          items-center justify-between border-b px-4
           pt-[env(safe-area-inset-top)]"
       >
         <h1 className="text-base font-semibold">gdoc-logs</h1>
@@ -81,17 +82,16 @@ export default function App() {
       </main>
 
       {/* FAB（投稿ボタン） */}
-      {accessToken && selectedDoc && (
-        <Button
-          onClick={() => setComposeOpen(true)}
-          className="fixed right-5
-            bottom-[calc(1.25rem+env(safe-area-inset-bottom))] size-14
-            rounded-full shadow-lg"
-          aria-label="投稿する"
-        >
-          <Pencil className="size-5" />
-        </Button>
-      )}
+      <Button
+        onClick={() => setComposeOpen(true)}
+        disabled={!accessToken || !selectedDoc}
+        className="fixed right-5
+          bottom-[calc(1.25rem+env(safe-area-inset-bottom))] size-14
+          rounded-full shadow-lg"
+        aria-label="投稿する"
+      >
+        <Pencil className="size-5" />
+      </Button>
 
       {/* ハンバーガーメニュー（Sheet） */}
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>

@@ -69,7 +69,7 @@ export function ComposeOverlay({
         ref={textareaRef}
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="いまどうしてる？"
+        placeholder="ログを入力…"
         className="h-[50vh] flex-none resize-none overflow-y-auto rounded-none
           border-none p-4 text-base shadow-none focus-visible:ring-0"
         onKeyDown={(e) => {
