@@ -46,6 +46,20 @@ export default function App() {
               </CardContent>
             </Card>
 
+            {selectedDoc && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">直近のログ</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TodaysDiary
+                    docId={selectedDoc.id}
+                    accessToken={accessToken}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">
@@ -59,20 +73,6 @@ export default function App() {
                 />
               </CardContent>
             </Card>
-
-            {selectedDoc && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">最新の記録</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TodaysDiary
-                    docId={selectedDoc.id}
-                    accessToken={accessToken}
-                  />
-                </CardContent>
-              </Card>
-            )}
           </div>
         )}
       </div>

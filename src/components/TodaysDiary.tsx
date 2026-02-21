@@ -1,5 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { Maximize2 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { extractContentAfterLastH2, readDoc } from "@/lib/google-docs";
 import type { GDocsDocument } from "@/lib/google-docs";
 
@@ -21,11 +30,27 @@ function getLastH2Text(doc: GDocsDocument): string {
   return text;
 }
 
+function LogList({ paragraphs }: { paragraphs: string[] }) {
+  return (
+    <ul className="space-y-1.5">
+      {paragraphs.map((p, i) => (
+        <li key={i} className="text-sm leading-relaxed">
+          {p}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function TodaysDiary({ docId, accessToken }: Props) {
   const [heading, setHeading] = useState("");
   const [paragraphs, setParagraphs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const compactRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -41,10 +66,25 @@ export function TodaysDiary({ docId, accessToken }: Props) {
       .finally(() => setLoading(false));
   }, [docId, accessToken]);
 
+  // コンパクト表示: データ読み込み後に最下部へスクロール
+  useEffect(() => {
+    if (compactRef.current && paragraphs.length > 0) {
+      compactRef.current.scrollTop = compactRef.current.scrollHeight;
+    }
+  }, [paragraphs]);
+
+  // モーダル: 開いたあと最下部へスクロール（アニメーション後に実行）
+  useEffect(() => {
+    if (!modalOpen) return;
+    const el = modalRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+  }, [modalOpen]);
+
   if (loading) {
-    return (
-      <p className="text-muted-foreground text-sm">読み込み中...</p>
-    );
+    return <p className="text-muted-foreground text-sm">読み込み中...</p>;
   }
 
   if (error) {
@@ -60,19 +100,47 @@ export function TodaysDiary({ docId, accessToken }: Props) {
   }
 
   return (
-    <div className="space-y-2">
-      <p className="text-muted-foreground text-sm font-medium">{heading}</p>
-      {paragraphs.length === 0 ? (
-        <p className="text-muted-foreground text-sm">まだ記録がありません。</p>
-      ) : (
-        <ul className="space-y-1">
-          {paragraphs.map((p, i) => (
-            <li key={i} className="text-sm">
-              {p}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground text-xs font-medium">{heading}</p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0"
+            onClick={() => setModalOpen(true)}
+          >
+            <Maximize2 className="h-3.5 w-3.5" />
+            <span className="sr-only">全文を表示</span>
+          </Button>
+        </div>
+
+        {paragraphs.length === 0 ? (
+          <p className="text-muted-foreground text-sm">まだ記録がありません。</p>
+        ) : (
+          <div ref={compactRef} className="max-h-28 overflow-y-auto">
+            <LogList paragraphs={paragraphs} />
+          </div>
+        )}
+      </div>
+
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="flex max-h-[80vh] flex-col">
+          <DialogHeader>
+            <DialogTitle>{heading}</DialogTitle>
+          </DialogHeader>
+          <div ref={modalRef} className="min-h-0 flex-1 overflow-y-auto">
+            {paragraphs.length === 0 ? (
+              <p className="text-muted-foreground text-sm">
+                まだ記録がありません。
+              </p>
+            ) : (
+              <LogList paragraphs={paragraphs} />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
