@@ -1,22 +1,20 @@
-import { Toaster } from '@/components/ui/sonner'
-import { AuthButton } from '@/components/AuthButton'
-import { DocSelector } from '@/components/DocSelector'
-import { EntryForm } from '@/components/EntryForm'
-import { useAuth } from '@/hooks/useAuth'
-import { useSelectedDoc } from '@/hooks/useSelectedDoc'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { AuthButton } from '@/components/AuthButton';
+import { DocSelector } from '@/components/DocSelector';
+import { EntryForm } from '@/components/EntryForm';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Toaster } from '@/components/ui/sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { useSelectedDoc } from '@/hooks/useSelectedDoc';
 
 export default function App() {
-  const { accessToken, setToken, clearToken } = useAuth()
-  const { selectedDoc, selectDoc } = useSelectedDoc()
+  const { accessToken, setToken, clearToken } = useAuth();
+  const { selectedDoc, selectDoc } = useSelectedDoc();
 
   return (
-    <div className="min-h-screen bg-background flex items-start justify-center pt-16 px-4">
+    <div
+      className="bg-background flex min-h-screen items-start justify-center px-4
+        pt-16"
+    >
       <div className="w-full max-w-xl space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">gdoc-logs</h1>
@@ -65,5 +63,5 @@ export default function App() {
       </div>
       <Toaster />
     </div>
-  )
+  );
 }

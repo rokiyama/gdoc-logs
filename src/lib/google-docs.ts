@@ -1,36 +1,36 @@
 // ---- Google Docs REST API の型定義 ----
 
 export interface TextRun {
-  content: string
-  textStyle: Record<string, unknown>
+  content: string;
+  textStyle: Record<string, unknown>;
 }
 
 export interface ParagraphElement {
-  startIndex: number
-  endIndex: number
-  textRun?: TextRun
+  startIndex: number;
+  endIndex: number;
+  textRun?: TextRun;
 }
 
 export interface Paragraph {
-  elements: ParagraphElement[]
+  elements: ParagraphElement[];
   paragraphStyle: {
-    namedStyleType: string
-    direction?: string
-  }
+    namedStyleType: string;
+    direction?: string;
+  };
 }
 
 export interface StructuralElement {
-  startIndex: number
-  endIndex: number
-  paragraph?: Paragraph
+  startIndex: number;
+  endIndex: number;
+  paragraph?: Paragraph;
 }
 
 export interface GDocsDocument {
-  documentId: string
-  title: string
+  documentId: string;
+  title: string;
   body: {
-    content: StructuralElement[]
-  }
+    content: StructuralElement[];
+  };
 }
 
 // ---- API 関数 ----
@@ -44,7 +44,7 @@ export async function appendTextToDoc(
   text: string,
   accessToken: string,
 ): Promise<void> {
-  const textToInsert = text.endsWith('\n') ? text : `${text}\n`
+  const textToInsert = text.endsWith('\n') ? text : `${text}\n`;
   const res = await fetch(
     `https://docs.googleapis.com/v1/documents/${docId}:batchUpdate`,
     {
@@ -64,10 +64,10 @@ export async function appendTextToDoc(
         ],
       }),
     },
-  )
+  );
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(`Docs API error ${res.status}: ${JSON.stringify(err)}`)
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Docs API error ${res.status}: ${JSON.stringify(err)}`);
   }
 }
 
@@ -78,15 +78,14 @@ export async function readDoc(
   docId: string,
   accessToken: string,
 ): Promise<GDocsDocument> {
-  const res = await fetch(
-    `https://docs.googleapis.com/v1/documents/${docId}`,
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  )
+  const res = await fetch(`https://docs.googleapis.com/v1/documents/${docId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(`Docs API error ${res.status}: ${JSON.stringify(err)}`)
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Docs API error ${res.status}: ${JSON.stringify(err)}`);
   }
-  return res.json()
+  return res.json();
 }
 
 /**
@@ -94,30 +93,28 @@ export async function readDoc(
  * H2 が存在しない場合は空配列を返す。
  */
 export function extractContentAfterLastH2(doc: GDocsDocument): string[] {
-  const elements = doc.body.content
+  const elements = doc.body.content;
 
-  let lastH2Index = -1
+  let lastH2Index = -1;
   for (let i = 0; i < elements.length; i++) {
-    if (
-      elements[i].paragraph?.paragraphStyle?.namedStyleType === 'HEADING_2'
-    ) {
-      lastH2Index = i
+    if (elements[i].paragraph?.paragraphStyle?.namedStyleType === 'HEADING_2') {
+      lastH2Index = i;
     }
   }
 
-  if (lastH2Index === -1) return []
+  if (lastH2Index === -1) return [];
 
-  const result: string[] = []
+  const result: string[] = [];
   for (let i = lastH2Index + 1; i < elements.length; i++) {
-    const el = elements[i]
-    if (!el.paragraph) continue
+    const el = elements[i];
+    if (!el.paragraph) continue;
     const text = el.paragraph.elements
       .map((pe) => pe.textRun?.content ?? '')
       .join('')
-      .replace(/\n$/, '')
+      .replace(/\n$/, '');
     if (text.trim().length > 0) {
-      result.push(text)
+      result.push(text);
     }
   }
-  return result
+  return result;
 }

@@ -1,30 +1,36 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { openGooglePicker } from '@/lib/google-picker'
-import type { SelectedDoc } from '@/hooks/useSelectedDoc'
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import type { SelectedDoc } from '@/hooks/useSelectedDoc';
+import { openGooglePicker } from '@/lib/google-picker';
 
 interface Props {
-  accessToken: string
-  apiKey: string
-  selectedDoc: SelectedDoc | null
-  onSelect: (id: string, name: string) => void
+  accessToken: string;
+  apiKey: string;
+  selectedDoc: SelectedDoc | null;
+  onSelect: (id: string, name: string) => void;
 }
 
-export function DocSelector({ accessToken, apiKey, selectedDoc, onSelect }: Props) {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function DocSelector({
+  accessToken,
+  apiKey,
+  selectedDoc,
+  onSelect,
+}: Props) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handlePick() {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const file = await openGooglePicker(accessToken, apiKey)
-      if (file) onSelect(file.id, file.name)
+      const file = await openGooglePicker(accessToken, apiKey);
+      if (file) onSelect(file.id, file.name);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'ピッカーを開けませんでした')
+      setError(e instanceof Error ? e.message : 'ピッカーを開けませんでした');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -32,11 +38,11 @@ export function DocSelector({ accessToken, apiKey, selectedDoc, onSelect }: Prop
     <div className="space-y-2">
       <Label>追記先のドキュメント</Label>
       {selectedDoc && (
-        <p className="text-sm font-medium truncate" title={selectedDoc.name}>
+        <p className="truncate text-sm font-medium" title={selectedDoc.name}>
           {selectedDoc.name}
         </p>
       )}
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-destructive text-sm">{error}</p>}
       <Button
         variant="outline"
         onClick={() => void handlePick()}
@@ -50,5 +56,5 @@ export function DocSelector({ accessToken, apiKey, selectedDoc, onSelect }: Prop
             : 'ドキュメントを選択'}
       </Button>
     </div>
-  )
+  );
 }
