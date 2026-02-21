@@ -1,10 +1,8 @@
 import { useGoogleLogin } from '@react-oauth/google'
 import { Button } from '@/components/ui/button'
 
-const SCOPES = [
-  'https://www.googleapis.com/auth/documents',
-  'https://www.googleapis.com/auth/drive.metadata.readonly',
-].join(' ')
+// drive.file: ユーザーが明示的に選択したファイルのみにアクセス（最小権限）
+const SCOPES = 'https://www.googleapis.com/auth/drive.file'
 
 interface Props {
   onLogin: (token: string) => void
@@ -27,7 +25,5 @@ export function AuthButton({ onLogin, onLogout, isLoggedIn }: Props) {
     )
   }
 
-  return (
-    <Button onClick={() => login()}>Sign in with Google</Button>
-  )
+  return <Button onClick={() => login()}>Sign in with Google</Button>
 }
