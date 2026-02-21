@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -58,9 +59,14 @@ export function ComposeOverlay({
         <Button
           onClick={() => void handleSubmit()}
           disabled={!canSubmit}
-          className="rounded-full px-5"
+          className="relative rounded-full px-5"
         >
-          {submitting ? "送信中..." : "送信"}
+          {submitting && (
+            <span className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="size-4 animate-spin" />
+            </span>
+          )}
+          <span className={submitting ? "invisible" : undefined}>送信</span>
         </Button>
       </header>
 
