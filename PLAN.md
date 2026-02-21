@@ -187,5 +187,6 @@ VITE_OPENAI_API_KEY=sk-...
 5. レスポンスのテキストを `<Textarea>` の value に設定（ユーザーが編集してから送信）
 
 **EntryForm.tsx への組み込み**
+
 - `VoiceButton` を同ファイル内に定義し、Textarea の下・送信ボタンの横に配置
 - `onTranscript` コールバックで受け取ったテキストを `setText()` にセット

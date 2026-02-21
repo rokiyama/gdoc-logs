@@ -1,19 +1,12 @@
-import { Maximize2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { extractContentAfterLastH2, readDoc } from "@/lib/google-docs";
 import type { GDocsDocument } from "@/lib/google-docs";
 
 interface Props {
   docId: string;
   accessToken: string;
+  refreshKey: number;
 }
 
 type FetchState =
@@ -36,7 +29,7 @@ function getLastH2Text(doc: GDocsDocument): string {
 
 function LogList({ paragraphs }: { paragraphs: string[] }) {
   return (
-    <ul className="space-y-1.5">
+    <ul className="space-y-1.5 px-4 pb-3">
       {paragraphs.map((p, i) => (
         <li key={i} className="text-sm/relaxed">
           {p}
@@ -46,10 +39,9 @@ function LogList({ paragraphs }: { paragraphs: string[] }) {
   );
 }
 
-export function TodaysDiary({ docId, accessToken }: Props) {
+export function TodaysDiary({ docId, accessToken, refreshKey }: Props) {
   const [state, setState] = useState<FetchState>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const compactRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,77 +69,52 @@ export function TodaysDiary({ docId, accessToken }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [docId, accessToken]);
+  }, [docId, accessToken, refreshKey]);
 
-  // コンパクト表示: データ読み込み後に最下部へスクロール
+  // データ読み込み後に最下部へスクロール
   useEffect(() => {
-    if (state?.ok && compactRef.current) {
-      compactRef.current.scrollTop = compactRef.current.scrollHeight;
+    if (state?.ok && listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
     }
   }, [state]);
 
   if (state === null) {
-    return <p className="text-muted-foreground text-sm">読み込み中...</p>;
+    return (
+      <p className="text-muted-foreground px-4 py-3 text-sm">読み込み中...</p>
+    );
   }
 
   if (!state.ok) {
-    return <p className="text-destructive text-sm">{state.message}</p>;
+    return (
+      <p className="text-destructive px-4 py-3 text-sm">{state.message}</p>
+    );
   }
 
   const { heading, paragraphs } = state;
 
   if (!heading) {
     return (
-      <p className="text-muted-foreground text-sm">
+      <p className="text-muted-foreground px-4 py-3 text-sm">
         H2 見出しが見つかりませんでした。
       </p>
     );
   }
 
   return (
-    <>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground text-xs font-medium">{heading}</p>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-6 shrink-0"
-            onClick={() => setModalOpen(true)}
-          >
-            <Maximize2 className="size-3.5" />
-            <span className="sr-only">全文を表示</span>
-          </Button>
-        </div>
-
-        {paragraphs.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            まだ記録がありません。
-          </p>
-        ) : (
-          <div ref={compactRef} className="max-h-28 overflow-y-auto">
-            <LogList paragraphs={paragraphs} />
-          </div>
-        )}
-      </div>
-
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="flex max-h-[80vh] flex-col">
-          <DialogHeader>
-            <DialogTitle>{heading}</DialogTitle>
-          </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            {paragraphs.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                まだ記録がありません。
-              </p>
-            ) : (
-              <LogList paragraphs={paragraphs} />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    <div ref={listRef} className="h-full overflow-y-auto">
+      <p
+        className="text-muted-foreground bg-background sticky top-0 px-4 py-2
+          text-xs font-medium"
+      >
+        {heading}
+      </p>
+      {paragraphs.length === 0 ? (
+        <p className="text-muted-foreground px-4 py-3 text-sm">
+          まだ記録がありません。
+        </p>
+      ) : (
+        <LogList paragraphs={paragraphs} />
+      )}
+    </div>
   );
 }
