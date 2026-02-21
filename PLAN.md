@@ -23,8 +23,6 @@ Google Docs をつぶやき日記として使う個人用 SPA。
 
 ### Step 1: 追記機能 ✅ 完了
 
-**やること**
-
 - Google OAuth2 ログイン（`documents` スコープ）
 - Google Picker でドキュメントを選択（選択内容を localStorage に永続化）
 - テキスト入力 → Google Docs 末尾に追記
@@ -71,87 +69,36 @@ VITE_GOOGLE_API_KEY=...                               # Google Picker 用 API �
 
 ---
 
-## Step 1-2: ESLint + Prettier 設定 ✅ 完了
+### Step 1-2: ESLint + Prettier 設定 ✅ 完了
 
-**作成・変更したファイル**
-
-- `prettier.config.js`（新規）— sort-imports / tailwindcss / classnames / merge プラグイン。`singleQuote` は未設定（デフォルトのダブルクォート）
-- `.prettierignore`（新規）— `dist`, `node_modules`, `pnpm-lock.yaml` を除外
-- `eslint.config.js`（更新）— react / better-tailwindcss / eslint-config-prettier を追加。`src/components/ui/**` に対しては `react-refresh/only-export-components`, `no-unknown-classes`, `enforce-canonical-classes` をオフ（shadcn/ui 生成コードのため）
-- `tsconfig.app.json`（更新）— `noUnusedLocals` / `noUnusedParameters` を削除（ESLint の warn に委譲）
-- `package.json`（更新）— `format` / `format:check` スクリプトを追加
+- `prettier.config.js` — sort-imports / tailwindcss / classnames / merge プラグイン。`singleQuote` は未設定（デフォルトのダブルクォート）
+- `.prettierignore` — `dist`, `node_modules`, `pnpm-lock.yaml` を除外
+- `eslint.config.js` — react / better-tailwindcss / eslint-config-prettier を追加。`src/components/ui/**` は shadcn/ui 生成コードのため一部ルールをオフ
+- `tsconfig.app.json` — `noUnusedLocals` / `noUnusedParameters` を削除（ESLint の warn に委譲）
+- `package.json` — `format` / `format:check` スクリプトを追加
 
 **ハマりポイント**
 
-- `prettier-plugin-classnames` + `singleQuote: true` の組み合わせで、shadcn/ui の `button.tsx` にある `[&_svg:not([class*='size-'])]` のようなネストしたクォートをパースできずクラッシュ。`singleQuote` を削除（デフォルトのダブルクォートを使用）することで解消。
+- `prettier-plugin-classnames` + `singleQuote: true` の組み合わせで shadcn/ui の `button.tsx` のネストしたクォートをパースできずクラッシュ。`singleQuote` を削除することで解消。
 - ESLint flat config では、ルールオーバーライドブロックをメインブロックの**後**に置かないと上書きされない。
-
-**コミット**
-
-```
-72fd5fd chore: add ESLint and Prettier configuration
-97fc682 style: format all files with Prettier
-2b99bba style: remove singleQuote, reformat all files including ui/ with Prettier
-```
 
 ---
 
-### Step 1-3: GitHub Actions + GitHub Pages デプロイ（未着手）
+### Step 1-3: GitHub Actions + GitHub Pages デプロイ ✅ 完了
 
-**事前にユーザーが手動で行う作業**
+**事前にユーザーが手動で行う作業（完了済み）**
 
-1. Google Cloud Console → OAuth クライアントの「承認済みの JavaScript 生成元」に追加:
-   - `https://<GitHubユーザー名>.github.io`
-2. GitHub リポジトリ Settings > Pages > Source: **GitHub Actions** を選択
-3. GitHub リポジトリ Settings > Secrets and variables > Actions に追加:
+1. Google Cloud Console → OAuth クライアントの「承認済みの JavaScript 生成元」に `https://<GitHubユーザー名>.github.io` を追加
+2. Google Cloud Console → API キーの「HTTPリファラーの制限」に `https://<user>.github.io/*` を追加
+3. GitHub リポジトリ Settings > Pages > Source: **GitHub Actions** を選択
+4. GitHub リポジトリ Settings > Secrets and variables > Actions > **Variables** タブ > Repository variables に追加:
    - `VITE_GOOGLE_CLIENT_ID`
    - `VITE_GOOGLE_API_KEY`
+   - ※ `VITE_*` はビルド時に JS バンドルに埋め込まれ公開されるため secrets ではなく variables で正しい
 
-**作成するファイル: `.github/workflows/deploy.yml`**
+**作成ファイル: `.github/workflows/deploy.yml`**（`main` push または手動実行でデプロイ）
 
-```yaml
-name: Deploy to GitHub Pages
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 24 }
-      - uses: pnpm/action-setup@v4
-        with: { version: latest }
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm run build
-        env:
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-          VITE_GOOGLE_API_KEY: ${{ secrets.VITE_GOOGLE_API_KEY }}
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with: { path: ./dist }
-  deploy:
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
-```
+**動作確認済み**: PC・スマホ両方で正常動作、モバイルレイアウトも問題なし。
 
 ---
 
@@ -349,19 +296,4 @@ function VoiceButton({
     </Button>
   );
 }
-```
-
----
-
-## git log（直近）
-
-```
-2b99bba style: remove singleQuote, reformat all files including ui/ with Prettier
-97fc682 style: format all files with Prettier
-72fd5fd chore: add ESLint and Prettier configuration
-34cfc61 fix: use documents scope instead of drive.file for Docs API
-f8d8253 refactor: narrow OAuth scope to drive.file via Google Picker
-f03d37b feat: implement Step 1 - append text to Google Docs
-c3118d2 setup: add Tailwind CSS v4, shadcn/ui, @react-oauth/google
-1be6057 create vite app
 ```
