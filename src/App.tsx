@@ -1,6 +1,6 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import { Menu, Pencil } from "lucide-react";
-import { useState } from "react";
+import { Menu, Pencil, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { ComposeOverlay } from "@/components/ComposeOverlay";
 import { DocSelector } from "@/components/DocSelector";
@@ -37,6 +37,19 @@ export default function App() {
     setRefreshKey((k) => k + 1);
   }
 
+  // 画面復帰時（タブ切り替え・スリープ復帰）に最新データを取得
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (!document.hidden) {
+        setRefreshKey((k) => k + 1);
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   return (
     <div
       className="bg-background flex h-dvh flex-col
@@ -50,14 +63,26 @@ export default function App() {
       >
         <h1 className="text-base font-semibold">gdoc-logs</h1>
         {accessToken ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMenuOpen(true)}
-            aria-label="メニューを開く"
-          >
-            <Menu className="size-5" />
-          </Button>
+          <div className="flex items-center">
+            {selectedDoc && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setRefreshKey((k) => k + 1)}
+                aria-label="最新のデータを取得"
+              >
+                <RefreshCw className="size-5" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMenuOpen(true)}
+              aria-label="メニューを開く"
+            >
+              <Menu className="size-5" />
+            </Button>
+          </div>
         ) : (
           <Button onClick={() => login()}>Sign in with Google</Button>
         )}
