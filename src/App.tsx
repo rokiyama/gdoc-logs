@@ -26,7 +26,8 @@ export default function App() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const login = useGoogleLogin({
-    onSuccess: (response) => setToken(response.access_token),
+    onSuccess: (response) =>
+      setToken(response.access_token, response.expires_in),
     onError: () => console.error("Google login failed"),
     scope: SCOPES,
   });
