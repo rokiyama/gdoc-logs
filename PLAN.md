@@ -109,6 +109,60 @@ VITE_GOOGLE_API_KEY=...                               # Google Picker 用 API �
 
 ---
 
+### Step 2-2: モバイル UI 改善（未着手）
+
+**課題**
+
+- iOS PWA で画面下部がホームインジケーターに重なる
+- Textarea が文字数に応じて伸縮して入力しづらい
+- ドキュメント選択が常時表示されており邪魔
+
+**新しい UI 構成**
+
+```
+メイン画面（ログイン済み）
+┌────────────────────────────────┐  ← safe-area-top
+│ gdoc-logs               [☰]  │  ← ヘッダー（ハンバーガーメニュー）
+├────────────────────────────────┤
+│                                │
+│  TodaysDiary（全画面スクロール）│  ← 残余スペースをすべて使用
+│  （デフォルトスクロール位置=最下部）
+│                                │
+│                        [✎ FAB]│  ← 右下固定（投稿ボタン）
+└────────────────────────────────┘  ← safe-area-bottom
+
+ハンバーガーメニュー（Sheet スライドイン）
+- DocSelector（ドキュメント選択・変更）
+- Sign out ボタン
+
+投稿画面（FAB タップ後、フルスクリーンオーバーレイ）
+┌────────────────────────────────┐
+│ [キャンセル]    [送信]          │  ← 固定ヘッダー
+├────────────────────────────────┤
+│                                │
+│  Textarea（高さ固定 ~50vh）    │  ← resize-none / overflow-y-auto
+│                                │
+└────────────────────────────────┘
+```
+
+**変更ファイル一覧**
+
+- `index.html` — viewport meta に `viewport-fit=cover` を追加
+- `src/index.css` — `.pt-safe` / `.pb-safe` ユーティリティを追加（`env(safe-area-inset-*)`）
+- `src/components/ui/sheet.tsx` — shadcn Sheet を追加（`pnpm dlx shadcn@latest add sheet`）
+- `src/components/TodaysDiary.tsx` — Dialog/モーダルを削除、全件表示に変更、`refreshKey: number` prop 追加
+- `src/components/ComposeOverlay.tsx` — 新規作成。EntryForm のロジックを移植しフルスクリーン UI に変更
+- `src/App.tsx` — `min-h-[100dvh]` + safe-area 対応レイアウト、Sheet メニュー、FAB、`refreshKey` state を実装
+- `src/components/EntryForm.tsx` — ComposeOverlay に移植後、削除
+
+**ハマりポイント（実装時の注意）**
+
+- ドキュメント未選択時も同じレイアウトで表示し、本文エリアに「メニューからドキュメントを選択してください」と案内する
+- 投稿成功後に TodaysDiary を再 fetch するため、App の `refreshKey` をインクリメントして prop 経由で渡す
+- Textarea は高さ固定（`h-[50vh]`）・`resize-none`・`overflow-y-auto`。キーボード表示/非表示での高さ調整は行わない（複雑なため）
+
+---
+
 ### Step 3: 音声入力（OpenAI Whisper API）（未着手）
 
 **やること**
