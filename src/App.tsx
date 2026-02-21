@@ -1,6 +1,7 @@
 import { useGoogleLogin } from "@react-oauth/google";
 import { Menu, Pencil, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { ComposeOverlay } from "@/components/ComposeOverlay";
 import { DocSelector } from "@/components/DocSelector";
@@ -24,6 +25,9 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [composeOpen, setComposeOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  // 手動リロード時のみトーストを出すためのフラグ
+  const isManualRefresh = useRef(false);
 
   const login = useGoogleLogin({
     onSuccess: (response) =>
@@ -37,10 +41,27 @@ export default function App() {
     setRefreshKey((k) => k + 1);
   }
 
+  // TodaysDiary のロード完了時に呼ばれる
+  const handleLoaded = useCallback(() => {
+    setRefreshing(false);
+    if (isManualRefresh.current) {
+      isManualRefresh.current = false;
+      toast.success("更新しました");
+    }
+  }, []);
+
+  // 手動リロード
+  function handleManualRefresh() {
+    isManualRefresh.current = true;
+    setRefreshing(true);
+    setRefreshKey((k) => k + 1);
+  }
+
   // 画面復帰時（タブ切り替え・スリープ復帰）に最新データを取得
   useEffect(() => {
     function handleVisibilityChange() {
       if (!document.hidden) {
+        setRefreshing(true);
         setRefreshKey((k) => k + 1);
       }
     }
@@ -68,10 +89,16 @@ export default function App() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setRefreshKey((k) => k + 1)}
+                onClick={handleManualRefresh}
                 aria-label="最新のデータを取得"
               >
-                <RefreshCw className="size-5" />
+                <RefreshCw
+                  className={
+                    refreshing
+                      ? "size-5 animate-spin"
+                      : "size-5"
+                  }
+                />
               </Button>
             )}
             <Button
@@ -103,6 +130,7 @@ export default function App() {
             docId={selectedDoc.id}
             accessToken={accessToken}
             refreshKey={refreshKey}
+            onLoaded={handleLoaded}
           />
         )}
       </main>

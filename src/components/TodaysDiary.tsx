@@ -7,6 +7,7 @@ interface Props {
   docId: string;
   accessToken: string;
   refreshKey: number;
+  onLoaded?: () => void;
 }
 
 type FetchState =
@@ -39,7 +40,12 @@ function LogList({ paragraphs }: { paragraphs: string[] }) {
   );
 }
 
-export function TodaysDiary({ docId, accessToken, refreshKey }: Props) {
+export function TodaysDiary({
+  docId,
+  accessToken,
+  refreshKey,
+  onLoaded,
+}: Props) {
   const [state, setState] = useState<FetchState>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -54,6 +60,7 @@ export function TodaysDiary({ docId, accessToken, refreshKey }: Props) {
             heading: getLastH2Text(doc),
             paragraphs: extractContentAfterLastH2(doc),
           });
+          onLoaded?.();
         }
       })
       .catch((err: unknown) => {
@@ -63,13 +70,14 @@ export function TodaysDiary({ docId, accessToken, refreshKey }: Props) {
             message:
               err instanceof Error ? err.message : "読み込みに失敗しました",
           });
+          onLoaded?.();
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [docId, accessToken, refreshKey]);
+  }, [docId, accessToken, refreshKey, onLoaded]);
 
   // データ読み込み後に最下部へスクロール
   useEffect(() => {
