@@ -1,4 +1,5 @@
 import { AuthButton } from "@/components/AuthButton";
+import { TodaysDiary } from "@/components/TodaysDiary";
 import { DocSelector } from "@/components/DocSelector";
 import { EntryForm } from "@/components/EntryForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,6 +59,20 @@ export default function App() {
                 />
               </CardContent>
             </Card>
+
+            {selectedDoc && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">最新の記録</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TodaysDiary
+                    docId={selectedDoc.id}
+                    accessToken={accessToken}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </div>
