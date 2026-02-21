@@ -115,6 +115,8 @@ export function TodaysDiary({ docId, accessToken, refreshKey }: Props) {
       ) : (
         <LogList paragraphs={paragraphs} />
       )}
+      {/* FAB（固定ボタン）に隠れないようスペーサー */}
+      <div className="h-20" aria-hidden="true" />
     </div>
   );
 }
