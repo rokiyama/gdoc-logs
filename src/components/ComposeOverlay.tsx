@@ -20,7 +20,10 @@ export function ComposeOverlay({
   onClose,
   onSuccess,
 }: Props) {
-  const [text, setText] = useState("");
+  const DRAFT_KEY = "gdoc_logs_draft";
+  const [text, setText] = useState(
+    () => localStorage.getItem(DRAFT_KEY) ?? "",
+  );
   const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -36,6 +39,7 @@ export function ComposeOverlay({
     setSubmitting(true);
     try {
       await appendTextToDoc(selectedDoc.id, text.trim(), accessToken);
+      localStorage.removeItem(DRAFT_KEY);
       toast.success("追記しました");
       onSuccess();
     } catch (err) {
@@ -74,7 +78,15 @@ export function ComposeOverlay({
       <Textarea
         ref={textareaRef}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => {
+          const value = e.target.value;
+          setText(value);
+          if (value) {
+            localStorage.setItem(DRAFT_KEY, value);
+          } else {
+            localStorage.removeItem(DRAFT_KEY);
+          }
+        }}
         placeholder="ログを入力…"
         className="h-[50vh] flex-none resize-none overflow-y-auto rounded-none
           border-none p-4 text-base shadow-none focus-visible:ring-0"
