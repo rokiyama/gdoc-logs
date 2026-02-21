@@ -1,7 +1,7 @@
 import { AuthButton } from "@/components/AuthButton";
-import { TodaysDiary } from "@/components/TodaysDiary";
 import { DocSelector } from "@/components/DocSelector";
 import { EntryForm } from "@/components/EntryForm";
+import { TodaysDiary } from "@/components/TodaysDiary";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/hooks/useAuth";

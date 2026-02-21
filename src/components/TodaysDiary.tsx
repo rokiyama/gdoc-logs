@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-
 import { Maximize2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +15,11 @@ interface Props {
   docId: string;
   accessToken: string;
 }
+
+type FetchState =
+  | null // 取得中
+  | { ok: true; heading: string; paragraphs: string[] }
+  | { ok: false; message: string };
 
 function getLastH2Text(doc: GDocsDocument): string {
   let text = "";
@@ -34,7 +38,7 @@ function LogList({ paragraphs }: { paragraphs: string[] }) {
   return (
     <ul className="space-y-1.5">
       {paragraphs.map((p, i) => (
-        <li key={i} className="text-sm leading-relaxed">
+        <li key={i} className="text-sm/relaxed">
           {p}
         </li>
       ))}
@@ -43,42 +47,54 @@ function LogList({ paragraphs }: { paragraphs: string[] }) {
 }
 
 export function TodaysDiary({ docId, accessToken }: Props) {
-  const [heading, setHeading] = useState("");
-  const [paragraphs, setParagraphs] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<FetchState>(null);
   const [modalOpen, setModalOpen] = useState(false);
-
   const compactRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    let cancelled = false;
+
     readDoc(docId, accessToken)
       .then((doc) => {
-        setHeading(getLastH2Text(doc));
-        setParagraphs(extractContentAfterLastH2(doc));
+        if (!cancelled) {
+          setState({
+            ok: true,
+            heading: getLastH2Text(doc),
+            paragraphs: extractContentAfterLastH2(doc),
+          });
+        }
       })
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "読み込みに失敗しました");
-      })
-      .finally(() => setLoading(false));
+        if (!cancelled) {
+          setState({
+            ok: false,
+            message:
+              err instanceof Error ? err.message : "読み込みに失敗しました",
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [docId, accessToken]);
 
   // コンパクト表示: データ読み込み後に最下部へスクロール
   useEffect(() => {
-    if (compactRef.current && paragraphs.length > 0) {
+    if (state?.ok && compactRef.current) {
       compactRef.current.scrollTop = compactRef.current.scrollHeight;
     }
-  }, [paragraphs]);
+  }, [state]);
 
-  if (loading) {
+  if (state === null) {
     return <p className="text-muted-foreground text-sm">読み込み中...</p>;
   }
 
-  if (error) {
-    return <p className="text-destructive text-sm">{error}</p>;
+  if (!state.ok) {
+    return <p className="text-destructive text-sm">{state.message}</p>;
   }
+
+  const { heading, paragraphs } = state;
 
   if (!heading) {
     return (
@@ -97,16 +113,18 @@ export function TodaysDiary({ docId, accessToken }: Props) {
             type="button"
             variant="ghost"
             size="icon"
-            className="h-6 w-6 shrink-0"
+            className="size-6 shrink-0"
             onClick={() => setModalOpen(true)}
           >
-            <Maximize2 className="h-3.5 w-3.5" />
+            <Maximize2 className="size-3.5" />
             <span className="sr-only">全文を表示</span>
           </Button>
         </div>
 
         {paragraphs.length === 0 ? (
-          <p className="text-muted-foreground text-sm">まだ記録がありません。</p>
+          <p className="text-muted-foreground text-sm">
+            まだ記録がありません。
+          </p>
         ) : (
           <div ref={compactRef} className="max-h-28 overflow-y-auto">
             <LogList paragraphs={paragraphs} />
