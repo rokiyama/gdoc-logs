@@ -1,10 +1,10 @@
-import { AuthButton } from '@/components/AuthButton';
-import { DocSelector } from '@/components/DocSelector';
-import { EntryForm } from '@/components/EntryForm';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Toaster } from '@/components/ui/sonner';
-import { useAuth } from '@/hooks/useAuth';
-import { useSelectedDoc } from '@/hooks/useSelectedDoc';
+import { AuthButton } from "@/components/AuthButton";
+import { DocSelector } from "@/components/DocSelector";
+import { EntryForm } from "@/components/EntryForm";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Toaster } from "@/components/ui/sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { useSelectedDoc } from "@/hooks/useSelectedDoc";
 
 export default function App() {
   const { accessToken, setToken, clearToken } = useAuth();
@@ -48,7 +48,7 @@ export default function App() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">
-                  {selectedDoc ? selectedDoc.name : '追記'}
+                  {selectedDoc ? selectedDoc.name : "追記"}
                 </CardTitle>
               </CardHeader>
               <CardContent>

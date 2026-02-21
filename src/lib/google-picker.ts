@@ -1,5 +1,5 @@
-const GAPI_URL = 'https://apis.google.com/js/api.js';
-const DOCS_MIME_TYPE = 'application/vnd.google-apps.document';
+const GAPI_URL = "https://apis.google.com/js/api.js";
+const DOCS_MIME_TYPE = "application/vnd.google-apps.document";
 
 export interface PickedFile {
   id: string;
@@ -12,7 +12,7 @@ function loadScript(url: string): Promise<void> {
       resolve();
       return;
     }
-    const script = document.createElement('script');
+    const script = document.createElement("script");
     script.src = url;
     script.onload = () => resolve();
     script.onerror = () =>
@@ -24,7 +24,7 @@ function loadScript(url: string): Promise<void> {
 function loadPickerLib(): Promise<void> {
   return new Promise((resolve) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).gapi.load('picker', resolve);
+    (window as any).gapi.load("picker", resolve);
   });
 }
 
@@ -50,7 +50,7 @@ export async function openGooglePicker(
       .addView(view)
       .setOAuthToken(accessToken)
       .setDeveloperKey(apiKey)
-      .setTitle('追記先のドキュメントを選択')
+      .setTitle("追記先のドキュメントを選択")
       .setCallback(
         (data: {
           action: string;

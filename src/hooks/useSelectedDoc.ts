@@ -1,10 +1,10 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState } from "react";
 
 import {
   clearSelectedDoc,
   getSelectedDoc,
   setSelectedDoc,
-} from '@/lib/storage';
+} from "@/lib/storage";
 
 export interface SelectedDoc {
   id: string;

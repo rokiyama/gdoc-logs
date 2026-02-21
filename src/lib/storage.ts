@@ -1,5 +1,5 @@
-const SELECTED_DOC_KEY = 'gdoc-logs:selectedDocId';
-const SELECTED_DOC_NAME_KEY = 'gdoc-logs:selectedDocName';
+const SELECTED_DOC_KEY = "gdoc-logs:selectedDocId";
+const SELECTED_DOC_NAME_KEY = "gdoc-logs:selectedDocName";
 
 export function getSelectedDoc(): { id: string; name: string } | null {
   const id = localStorage.getItem(SELECTED_DOC_KEY);

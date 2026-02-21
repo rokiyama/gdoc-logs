@@ -44,21 +44,21 @@ export async function appendTextToDoc(
   text: string,
   accessToken: string,
 ): Promise<void> {
-  const textToInsert = text.endsWith('\n') ? text : `${text}\n`;
+  const textToInsert = text.endsWith("\n") ? text : `${text}\n`;
   const res = await fetch(
     `https://docs.googleapis.com/v1/documents/${docId}:batchUpdate`,
     {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         requests: [
           {
             insertText: {
               text: textToInsert,
-              endOfSegmentLocation: { segmentId: '' },
+              endOfSegmentLocation: { segmentId: "" },
             },
           },
         ],
@@ -97,7 +97,7 @@ export function extractContentAfterLastH2(doc: GDocsDocument): string[] {
 
   let lastH2Index = -1;
   for (let i = 0; i < elements.length; i++) {
-    if (elements[i].paragraph?.paragraphStyle?.namedStyleType === 'HEADING_2') {
+    if (elements[i].paragraph?.paragraphStyle?.namedStyleType === "HEADING_2") {
       lastH2Index = i;
     }
   }
@@ -109,9 +109,9 @@ export function extractContentAfterLastH2(doc: GDocsDocument): string[] {
     const el = elements[i];
     if (!el.paragraph) continue;
     const text = el.paragraph.elements
-      .map((pe) => pe.textRun?.content ?? '')
-      .join('')
-      .replace(/\n$/, '');
+      .map((pe) => pe.textRun?.content ?? "")
+      .join("")
+      .replace(/\n$/, "");
     if (text.trim().length > 0) {
       result.push(text);
     }

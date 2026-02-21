@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import type { SelectedDoc } from '@/hooks/useSelectedDoc';
-import { openGooglePicker } from '@/lib/google-picker';
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import type { SelectedDoc } from "@/hooks/useSelectedDoc";
+import { openGooglePicker } from "@/lib/google-picker";
 
 interface Props {
   accessToken: string;
@@ -28,7 +28,7 @@ export function DocSelector({
       const file = await openGooglePicker(accessToken, apiKey);
       if (file) onSelect(file.id, file.name);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'ピッカーを開けませんでした');
+      setError(e instanceof Error ? e.message : "ピッカーを開けませんでした");
     } finally {
       setLoading(false);
     }
@@ -50,10 +50,10 @@ export function DocSelector({
         className="w-full"
       >
         {loading
-          ? '読み込み中...'
+          ? "読み込み中..."
           : selectedDoc
-            ? 'ドキュメントを変更'
-            : 'ドキュメントを選択'}
+            ? "ドキュメントを変更"
+            : "ドキュメントを選択"}
       </Button>
     </div>
   );

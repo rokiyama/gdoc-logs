@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { toast } from "sonner";
 
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import type { SelectedDoc } from '@/hooks/useSelectedDoc';
-import { appendTextToDoc } from '@/lib/google-docs';
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import type { SelectedDoc } from "@/hooks/useSelectedDoc";
+import { appendTextToDoc } from "@/lib/google-docs";
 
 interface Props {
   accessToken: string;
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export function EntryForm({ accessToken, selectedDoc }: Props) {
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const canSubmit = !!selectedDoc && text.trim().length > 0 && !submitting;
@@ -25,10 +25,10 @@ export function EntryForm({ accessToken, selectedDoc }: Props) {
     setSubmitting(true);
     try {
       await appendTextToDoc(selectedDoc.id, text.trim(), accessToken);
-      setText('');
-      toast.success('追記しました');
+      setText("");
+      toast.success("追記しました");
     } catch (err) {
-      const message = err instanceof Error ? err.message : '追記に失敗しました';
+      const message = err instanceof Error ? err.message : "追記に失敗しました";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -43,8 +43,8 @@ export function EntryForm({ accessToken, selectedDoc }: Props) {
           id="entry-text"
           placeholder={
             selectedDoc
-              ? 'ここに記録したいことを書く...'
-              : 'まずドキュメントを選択してください'
+              ? "ここに記録したいことを書く..."
+              : "まずドキュメントを選択してください"
           }
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -53,7 +53,7 @@ export function EntryForm({ accessToken, selectedDoc }: Props) {
           className="resize-none"
           onKeyDown={(e) => {
             // Cmd+Enter または Ctrl+Enter で送信
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
               void handleSubmit(e as unknown as React.FormEvent);
             }
           }}
@@ -63,7 +63,7 @@ export function EntryForm({ accessToken, selectedDoc }: Props) {
         </p>
       </div>
       <Button type="submit" disabled={!canSubmit} className="w-full">
-        {submitting ? '追記中...' : '追記する'}
+        {submitting ? "追記中..." : "追記する"}
       </Button>
     </form>
   );

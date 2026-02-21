@@ -7,9 +7,9 @@ export interface DriveFile {
 export async function listDocs(accessToken: string): Promise<DriveFile[]> {
   const params = new URLSearchParams({
     q: "mimeType='application/vnd.google-apps.document' and trashed=false",
-    orderBy: 'modifiedTime desc',
-    fields: 'files(id,name,modifiedTime)',
-    pageSize: '50',
+    orderBy: "modifiedTime desc",
+    fields: "files(id,name,modifiedTime)",
+    pageSize: "50",
   });
   const res = await fetch(
     `https://www.googleapis.com/drive/v3/files?${params.toString()}`,
