@@ -21,9 +21,7 @@ export function ComposeOverlay({
   onSuccess,
 }: Props) {
   const DRAFT_KEY = "gdoc_logs_draft";
-  const [text, setText] = useState(
-    () => localStorage.getItem(DRAFT_KEY) ?? "",
-  );
+  const [text, setText] = useState(() => localStorage.getItem(DRAFT_KEY) ?? "");
   const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

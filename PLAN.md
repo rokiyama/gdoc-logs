@@ -5,6 +5,11 @@
 ## 作業ルール
 
 - ある程度まとまった作業が完了したら、こまめに git コミットすること。
+- コミット前に必ず以下のコマンドをすべて通過させること（CI と同じチェック）:
+  ```
+  pnpm format:check && pnpm lint && pnpm tsc --noEmit && pnpm build
+  ```
+  フォーマットエラーは `pnpm format` で自動修正できる。
 
 ---
 

@@ -93,11 +93,7 @@ export default function App() {
                 aria-label="最新のデータを取得"
               >
                 <RefreshCw
-                  className={
-                    refreshing
-                      ? "size-5 animate-spin"
-                      : "size-5"
-                  }
+                  className={refreshing ? "size-5 animate-spin" : "size-5"}
                 />
               </Button>
             )}
