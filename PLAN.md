@@ -129,6 +129,28 @@ VITE_GOOGLE_API_KEY=...                               # Google Picker 用 API �
 
 ---
 
+### Step 2-3: iOS メモアプリ風 UI リデザイン ✅ 完了
+
+**変更内容**
+
+- ヘッダーを半透明（`bg-background/80 backdrop-blur-md`）に変更
+- ヘッダーを 3 カラムレイアウトに変更し、タイトルを中央寄せ
+- ヘッダーサブタイトルに最終 H2 見出しの日付「`<日付>のログ`」を表示（`TodaysDiary` → `onHeadingChange` コールバックで伝播）
+- ハンバーガーアイコン → ミートボールアイコン（`MoreHorizontal`）に変更
+- Sheet（サイドメニュー）→ DropdownMenu（アイコン + ラベル形式）に差し替え
+  - `FileText` + ドキュメント選択/変更
+  - `LogOut` + サインアウト
+  - 選択中ドキュメント名をラベルとして表示
+- `DocSelector` ラベルを「追記先のドキュメント」→「選択中のドキュメント」に変更
+- shadcn/ui `dropdown-menu` コンポーネントを追加
+
+**ハマりポイント**
+
+- `react-hooks/set-state-in-effect` ルール: `useEffect` 内で heading リセットを行うとエラー。各イベントハンドラ（`handlePickDoc` / サインアウト onClick）で直接 `setCurrentHeading(null)` を呼ぶ方式で解消。
+- `react-hooks/exhaustive-deps`: `onHeadingChange` を `useEffect` の deps 配列に追加。
+
+---
+
 ### Step 3: 音声入力（OpenAI Whisper API）（未着手）
 
 **必要な追加環境変数**
