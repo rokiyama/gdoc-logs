@@ -27,19 +27,17 @@ Google Docs をつぶやき日記として使う個人用 SPA。
 - Google Picker でドキュメントを選択（選択内容を localStorage に永続化）
 - テキスト入力 → Google Docs 末尾に追記
 
-**実装済みファイル**
+**主要ファイル**
 
 - `src/main.tsx` — `<GoogleOAuthProvider>` ラッパー
 - `src/App.tsx` — 認証ゲート + レイアウト
 - `src/hooks/useAuth.ts` — access_token の React state 管理
 - `src/hooks/useSelectedDoc.ts` — 選択ドキュメント（localStorage 永続化）
 - `src/lib/storage.ts` — localStorage ヘルパー
-- `src/lib/google-drive.ts` — `listDocs()`（現在は未使用、Picker に移行済み）
 - `src/lib/google-docs.ts` — `appendTextToDoc()` / `readDoc()` / `extractContentAfterLastH2()`
 - `src/lib/google-picker.ts` — Google Picker を開くユーティリティ
-- `src/components/AuthButton.tsx` — Google ログイン/ログアウトボタン
 - `src/components/DocSelector.tsx` — Picker を開くボタン
-- `src/components/EntryForm.tsx` — テキスト入力 + 追記ボタン（Cmd+Enter 対応）
+- `src/components/ComposeOverlay.tsx` — フルスクリーン投稿画面（Cmd+Enter 対応）
 
 **OAuth スコープ**
 
@@ -58,17 +56,16 @@ VITE_GOOGLE_API_KEY=...                               # Google Picker 用 API �
 ### Step 1-2: ESLint + Prettier 設定 ✅ 完了
 
 - `prettier.config.js` — sort-imports / tailwindcss / classnames / merge プラグイン。`singleQuote` は未設定（デフォルトのダブルクォート）
-- `.prettierignore` — `dist`, `node_modules`, `pnpm-lock.yaml`, `.serena` を除外
 - `eslint.config.js` — react / better-tailwindcss / eslint-config-prettier を追加。`src/components/ui/**` は shadcn/ui 生成コードのため一部ルールをオフ
-- `tsconfig.app.json` — `noUnusedLocals` / `noUnusedParameters` を削除（ESLint の warn に委譲）
 - `package.json` — `format` / `format:check` スクリプトを追加
 
 **ハマりポイント**
 
 - `prettier-plugin-classnames` + `singleQuote: true` の組み合わせで shadcn/ui の `button.tsx` のネストしたクォートをパースできずクラッシュ。`singleQuote` を削除することで解消。
 - ESLint flat config では、ルールオーバーライドブロックをメインブロックの**後**に置かないと上書きされない。
-- `react-hooks/set-state-in-effect` ルール: `useEffect` 内で `setState` を同期呼び出しするとエラー。state を判別共用体（`null | {ok:true,...} | {ok:false,...}`）にまとめ、setState は `.then()` / `.catch()` の非同期コールバック内のみで呼ぶことで解消。
-- Tailwind v4 での短縮記法: `h-* w-*` → `size-*`、`text-sm leading-relaxed` → `text-sm/relaxed`（`leading-relaxed` 自体は v4 でも使用可能）
+- `react-hooks/set-state-in-effect` ルール: `useEffect` 内で `setState` を同期呼び出しするとエラー。setState は `.then()` / `.catch()` の非同期コールバック内のみで呼ぶ。
+- `better-tailwindcss/no-unknown-classes` ルール: CSS `@layer utilities` で定義したカスタムクラス（`.pt-safe` など）は ESLint に未知クラスと判定されエラーになる。Tailwind の任意値構文 `pt-[env(safe-area-inset-top)]` を使うことで回避できる。
+- Tailwind v4 での短縮記法: `h-* w-*` → `size-*`、`text-sm leading-relaxed` → `text-sm/relaxed`
 
 ---
 
@@ -86,22 +83,13 @@ VITE_GOOGLE_API_KEY=...                               # Google Picker 用 API �
 
 **`.github/workflows/deploy.yml`** — `main` push または手動実行でデプロイ。ステップ順: `format:check` → `lint` → `build`（いずれか失敗でデプロイ停止）
 
-**動作確認済み**: PC・スマホ両方で正常動作、モバイルレイアウトも問題なし。
-
 ---
 
 ### Step 2: 直近のログ表示 ✅ 完了
 
-- `src/components/TodaysDiary.tsx` — 新規作成
-- `src/components/ui/dialog.tsx` — shadcn Dialog を追加
+- `src/components/TodaysDiary.tsx` — ドキュメントを fetch して最後の H2 以降のログを全件表示。データ読み込み後に最下部へ自動スクロール。`refreshKey` prop の変化で再 fetch。
 
-**表示仕様**
-
-- App.tsx で「直近のログ」カードとして EntryForm の**上**に配置
-- コンパクト表示: `max-h-28 overflow-y-auto`、データ読み込み後に最下部へ自動スクロール
-- `Maximize2` アイコンボタン（ラベルなし）でモーダルを開き全文表示
-
-**アルゴリズム**
+**アルゴリズム（`src/lib/google-docs.ts`）**
 
 1. `GET https://docs.googleapis.com/v1/documents/{docId}` でドキュメント取得
 2. `body.content` を走査し `namedStyleType === "HEADING_2"` の最後のインデックスを特定
@@ -109,64 +97,34 @@ VITE_GOOGLE_API_KEY=...                               # Google Picker 用 API �
 
 ---
 
-### Step 2-2: モバイル UI 改善（未着手）
+### Step 2-2: モバイル UI 改善 ✅ 完了
 
-**課題**
-
-- iOS PWA で画面下部がホームインジケーターに重なる
-- Textarea が文字数に応じて伸縮して入力しづらい
-- ドキュメント選択が常時表示されており邪魔
-
-**新しい UI 構成**
+**現在の UI 構成**
 
 ```
-メイン画面（ログイン済み）
+メイン画面
 ┌────────────────────────────────┐  ← safe-area-top
-│ gdoc-logs               [☰]  │  ← ヘッダー（ハンバーガーメニュー）
+│ gdoc-logs               [☰]  │  ← sticky ヘッダー
 ├────────────────────────────────┤
 │                                │
-│  TodaysDiary（全画面スクロール）│  ← 残余スペースをすべて使用
+│  TodaysDiary（全画面スクロール）│
 │  （デフォルトスクロール位置=最下部）
 │                                │
-│                        [✎ FAB]│  ← 右下固定（投稿ボタン）
+│                        [✎ FAB]│  ← 常時表示、未選択時は disabled
 └────────────────────────────────┘  ← safe-area-bottom
 
-ハンバーガーメニュー（Sheet スライドイン）
-- DocSelector（ドキュメント選択・変更）
-- Sign out ボタン
-
-投稿画面（FAB タップ後、フルスクリーンオーバーレイ）
-┌────────────────────────────────┐
-│ [キャンセル]    [送信]          │  ← 固定ヘッダー
-├────────────────────────────────┤
-│                                │
-│  Textarea（高さ固定 ~50vh）    │  ← resize-none / overflow-y-auto
-│                                │
-└────────────────────────────────┘
+ハンバーガーメニュー（Sheet）: DocSelector / Sign out
+投稿画面（ComposeOverlay）: 固定ヘッダー [キャンセル][送信] + 高さ固定 Textarea
 ```
 
-**変更ファイル一覧**
+**ハマりポイント**
 
-- `index.html` — viewport meta に `viewport-fit=cover` を追加
-- `src/index.css` — `.pt-safe` / `.pb-safe` ユーティリティを追加（`env(safe-area-inset-*)`）
-- `src/components/ui/sheet.tsx` — shadcn Sheet を追加（`pnpm dlx shadcn@latest add sheet`）
-- `src/components/TodaysDiary.tsx` — Dialog/モーダルを削除、全件表示に変更、`refreshKey: number` prop 追加
-- `src/components/ComposeOverlay.tsx` — 新規作成。EntryForm のロジックを移植しフルスクリーン UI に変更
-- `src/App.tsx` — `min-h-[100dvh]` + safe-area 対応レイアウト、Sheet メニュー、FAB、`refreshKey` state を実装
-- `src/components/EntryForm.tsx` — ComposeOverlay に移植後、削除
-
-**ハマりポイント（実装時の注意）**
-
-- ドキュメント未選択時も同じレイアウトで表示し、本文エリアに「メニューからドキュメントを選択してください」と案内する
-- 投稿成功後に TodaysDiary を再 fetch するため、App の `refreshKey` をインクリメントして prop 経由で渡す
-- Textarea は高さ固定（`h-[50vh]`）・`resize-none`・`overflow-y-auto`。キーボード表示/非表示での高さ調整は行わない（複雑なため）
+- `better-tailwindcss/no-unknown-classes` 対策として safe-area は `pt-[env(safe-area-inset-top)]` / `pb-[env(safe-area-inset-bottom)]` の任意値構文で記述（CSS カスタムクラス不使用）
+- `react-hooks/set-state-in-effect`: refreshKey 変化時に `setState(null)` を effect の同期部分で呼ぶとエラー。前のデータを表示したままフェッチし、完了後に setState する方式で解消。
 
 ---
 
 ### Step 3: 音声入力（OpenAI Whisper API）（未着手）
-
-**やること**
-`EntryForm.tsx` に `VoiceButton` コンポーネントを追加するだけ。既存フォームの変更は最小限。
 
 **必要な追加環境変数**
 
@@ -176,6 +134,10 @@ VITE_OPENAI_API_KEY=sk-...
 
 ⚠️ 個人用ツールのため client-side に API キーを置く。**公開リポジトリにしない**。
 
+**実装方針**
+
+`ComposeOverlay.tsx` に `VoiceButton` コンポーネントを追加。Textarea の下・送信ボタンの横に配置し、`onTranscript` コールバックで受け取ったテキストを `setText()` にセット。
+
 **実装フロー**
 
 1. 「録音」ボタン押下 → `navigator.mediaDevices.getUserMedia({ audio: true })`
@@ -184,9 +146,4 @@ VITE_OPENAI_API_KEY=sk-...
 4. `POST https://api.openai.com/v1/audio/transcriptions` に送信
    - `model: whisper-1`, `language: ja`, `response_format: text`
    - `Authorization: Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
-5. レスポンスのテキストを `<Textarea>` の value に設定（ユーザーが編集してから送信）
-
-**EntryForm.tsx への組み込み**
-
-- `VoiceButton` を同ファイル内に定義し、Textarea の下・送信ボタンの横に配置
-- `onTranscript` コールバックで受け取ったテキストを `setText()` にセット
+5. レスポンスのテキストを Textarea の value に設定（ユーザーが編集してから送信）
