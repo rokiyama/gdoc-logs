@@ -100,13 +100,13 @@ export default function App() {
 
   return (
     <div
-      className="bg-background flex h-dvh flex-col
+      className="bg-background relative flex h-dvh flex-col
         pb-[env(safe-area-inset-bottom)]"
     >
       {/* ヘッダー */}
       <header
-        className="bg-background/80 sticky top-0 z-10 shrink-0 border-b px-2
-          pt-[env(safe-area-inset-top)] backdrop-blur-md"
+        className="absolute inset-x-0 top-0 z-10 px-2
+          pt-[env(safe-area-inset-top)]"
       >
         <div className="grid min-h-14 grid-cols-3 items-center py-1">
           {/* 左: リロードボタン */}
@@ -115,6 +115,8 @@ export default function App() {
               <Button
                 variant="ghost"
                 size="icon"
+                className="bg-background/40 rounded-full shadow-md
+                  backdrop-blur-xs"
                 onClick={handleManualRefresh}
                 aria-label="最新のデータを取得"
               >
@@ -126,10 +128,15 @@ export default function App() {
           </div>
 
           {/* 中央: タイトル + サブタイトル */}
-          <div className="flex flex-col items-center justify-center">
-            <span className="text-sm font-semibold">gdoc-logs</span>
+          <div
+            className="bg-background/40 flex flex-col items-center
+              justify-center rounded-full px-4 py-1 shadow-md backdrop-blur-sm"
+          >
+            <span className="text-sm font-semibold whitespace-nowrap">
+              gdoc-logs
+            </span>
             {currentHeading && (
-              <span className="text-muted-foreground text-xs">
+              <span className="text-muted-foreground text-xs whitespace-nowrap">
                 {currentHeading}のログ
               </span>
             )}
@@ -143,6 +150,8 @@ export default function App() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="bg-background/40 rounded-full shadow-md
+                      backdrop-blur-xs"
                     aria-label="メニューを開く"
                   >
                     <MoreHorizontal className="size-5" />
@@ -182,14 +191,20 @@ export default function App() {
         </div>
       </header>
 
-      {/* メインコンテンツ */}
-      <main className="relative min-h-0 flex-1">
+      {/* メインコンテンツ（ヘッダーは absolute なので flex-1 で全体を占有） */}
+      <main className="min-h-0 flex-1">
         {!accessToken ? (
-          <p className="text-muted-foreground px-4 py-6 text-sm">
+          <p
+            className="text-muted-foreground px-4
+              pt-[calc(4rem+env(safe-area-inset-top))] pb-6 text-sm"
+          >
             Google でサインインすると Google Docs に追記できます。
           </p>
         ) : !selectedDoc ? (
-          <p className="text-muted-foreground px-4 py-6 text-sm">
+          <p
+            className="text-muted-foreground px-4
+              pt-[calc(4rem+env(safe-area-inset-top))] pb-6 text-sm"
+          >
             メニューからドキュメントを選択してください。
           </p>
         ) : (

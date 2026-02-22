@@ -89,13 +89,23 @@ export function TodaysDiary({
 
   if (state === null) {
     return (
-      <p className="text-muted-foreground px-4 py-3 text-sm">読み込み中...</p>
+      <p
+        className="text-muted-foreground px-4
+          pt-[calc(4rem+env(safe-area-inset-top))] pb-3 text-sm"
+      >
+        読み込み中...
+      </p>
     );
   }
 
   if (!state.ok) {
     return (
-      <p className="text-destructive px-4 py-3 text-sm">{state.message}</p>
+      <p
+        className="text-destructive px-4
+          pt-[calc(4rem+env(safe-area-inset-top))] pb-3 text-sm"
+      >
+        {state.message}
+      </p>
     );
   }
 
@@ -103,14 +113,21 @@ export function TodaysDiary({
 
   if (!heading) {
     return (
-      <p className="text-muted-foreground px-4 py-3 text-sm">
+      <p
+        className="text-muted-foreground px-4
+          pt-[calc(4rem+env(safe-area-inset-top))] pb-3 text-sm"
+      >
         H2 見出しが見つかりませんでした。
       </p>
     );
   }
 
   return (
-    <div ref={listRef} className="h-full overflow-y-auto">
+    <div
+      ref={listRef}
+      className="h-full overflow-y-auto
+        pt-[calc(4rem+env(safe-area-inset-top))]"
+    >
       {paragraphs.length === 0 ? (
         <p className="text-muted-foreground px-4 py-3 text-sm">
           まだ記録がありません。
