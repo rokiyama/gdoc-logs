@@ -25,10 +25,18 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run format:check
       - run: pnpm run lint
+      - name: Set build info
+        run: |
+          echo "VITE_GIT_COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "VITE_GIT_COMMIT_DATE=$(git log -1 --format=%cI)" >> $GITHUB_ENV
+          echo "VITE_BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
       - run: pnpm run build
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
           VITE_GOOGLE_API_KEY: ${{ vars.VITE_GOOGLE_API_KEY }}
+          VITE_GIT_COMMIT_HASH: ${{ env.VITE_GIT_COMMIT_HASH }}
+          VITE_GIT_COMMIT_DATE: ${{ env.VITE_GIT_COMMIT_DATE }}
+          VITE_BUILD_DATE: ${{ env.VITE_BUILD_DATE }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: { path: ./dist }
