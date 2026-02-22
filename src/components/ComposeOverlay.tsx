@@ -57,8 +57,9 @@ export function ComposeOverlay({ onClose, onSubmit }: Props) {
           }
         }}
         placeholder="ログを入力…"
-        className="h-[50vh] flex-none resize-none overflow-y-auto rounded-none
-          border-none p-4 text-base shadow-none focus-visible:ring-0"
+        className="h-[calc(100dvh-3.5rem)] flex-none resize-none overflow-y-auto
+          rounded-none border-none p-4 text-base shadow-none
+          focus-visible:ring-0"
         onKeyDown={(e) => {
           if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
             handleSubmit();
