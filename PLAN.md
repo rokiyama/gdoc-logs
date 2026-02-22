@@ -176,6 +176,40 @@ Google OAuth implicit flow のトークン有効期限は 1 時間。
 
 ---
 
+### Step 2-5: メニュー拡充 ✅ 完了
+
+**追加したメニュー項目**
+
+- **今日の見出しを追加** (`CalendarPlus` アイコン): 今日の日付（`YYYY-MM-DD`）の H2 見出しをドキュメント末尾に追加。同じ日付が既にある場合は `DuplicateHeadingDialog` で警告。
+- **同期** (`RefreshCw` アイコン): 旧・ヘッダー左ボタンをメニューに移動。完了後に最終同期時刻（`HH:MM:SS`）を同じ行に表示。
+- **ページをリロード** (`RotateCcw` アイコン): `window.location.reload()` で完全リロード。
+- **ビルド情報**: CI ビルド時のみ表示。コミットハッシュ・ビルド日時を `font-mono text-[10px]` で末尾に表示。
+
+**追加 API 関数（`src/lib/google-docs.ts`）**
+
+- `findH2Headings(doc)` — 全 H2 見出しテキストを配列で返す
+- `appendHeadingToDoc(docId, dateText, accessToken)` — `endOfSegmentLocation` でテキスト挿入 → `updateParagraphStyle` で HEADING_2 適用（1 batchUpdate で実施）
+
+**CI 追加（`.github/workflows/deploy.yml`）**
+
+- ビルド前に `VITE_GIT_COMMIT_HASH` / `VITE_BUILD_DATE` を `$GITHUB_ENV` 経由でビルドステップに渡す
+
+---
+
+### Step 2-6: App.tsx コンポーネント分割 ✅ 完了
+
+App.tsx が 410 行に肥大化したため分割。
+
+| ファイル | 役割 |
+|---|---|
+| `src/hooks/useDocSync.ts` | `refreshKey` / `refreshing` / `lastSyncedAt` 管理 + `visibilitychange` 監視。`handleManualRefresh`（トースト付き）と `refresh`（サイレント）を分離 |
+| `src/hooks/useAddHeading.ts` | 今日の見出し追加ロジック・重複チェック状態。`getTodayDateString` もここに |
+| `src/components/AppMenu.tsx` | `DropdownMenu` JSX 全体。ビルド情報の組み立て（`getBuildInfo`）もここに |
+| `src/components/DuplicateHeadingDialog.tsx` | 重複見出し警告 Dialog |
+| `src/App.tsx` | 認証フロー・ルーティング・レイアウトのみのオーケストレータ（160 行） |
+
+---
+
 ### Step 3: 音声入力（OpenAI Whisper API）（未着手）
 
 **必要な追加環境変数**
