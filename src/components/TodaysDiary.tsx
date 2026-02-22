@@ -111,12 +111,6 @@ export function TodaysDiary({
 
   return (
     <div ref={listRef} className="h-full overflow-y-auto">
-      <p
-        className="text-muted-foreground bg-background sticky top-0 px-4 py-2
-          text-xs font-medium"
-      >
-        {heading}
-      </p>
       {paragraphs.length === 0 ? (
         <p className="text-muted-foreground px-4 py-3 text-sm">
           まだ記録がありません。
