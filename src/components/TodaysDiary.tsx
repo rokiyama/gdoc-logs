@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -11,6 +12,7 @@ interface Props {
   docId: string;
   accessToken: string;
   refreshKey: number;
+  syncing?: boolean;
   onLoaded?: () => void;
   onHeadingChange?: (heading: string) => void;
   onAuthExpired?: () => void;
@@ -50,6 +52,7 @@ export function TodaysDiary({
   docId,
   accessToken,
   refreshKey,
+  syncing,
   onLoaded,
   onHeadingChange,
   onAuthExpired,
@@ -151,6 +154,11 @@ export function TodaysDiary({
         </p>
       ) : (
         <LogList paragraphs={paragraphs} />
+      )}
+      {syncing && (
+        <div className="px-4 pb-3">
+          <Loader2 className="text-muted-foreground size-4 animate-spin" />
+        </div>
       )}
       {/* FAB（固定ボタン）に隠れないようスペーサー */}
       <div className="h-20" aria-hidden="true" />

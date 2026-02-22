@@ -169,6 +169,7 @@ export default function App() {
             docId={selectedDoc.id}
             accessToken={accessToken}
             refreshKey={refreshKey}
+            syncing={refreshing}
             onLoaded={handleLoaded}
             onHeadingChange={setCurrentHeading}
             onAuthExpired={handleAuthExpired}
