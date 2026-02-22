@@ -12,11 +12,25 @@ interface Props {
 export function ComposeOverlay({ onClose, onSubmit }: Props) {
   const [text, setText] = useState(() => localStorage.getItem(DRAFT_KEY) ?? "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const [textareaHeight, setTextareaHeight] = useState<number | null>(null);
 
   const canSubmit = text.trim().length > 0;
 
   useEffect(() => {
     textareaRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const headerHeight = headerRef.current?.offsetHeight ?? 56;
+      setTextareaHeight(vv.height - headerHeight);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    return () => vv.removeEventListener("resize", update);
   }, []);
 
   function handleSubmit() {
@@ -28,6 +42,7 @@ export function ComposeOverlay({ onClose, onSubmit }: Props) {
     <div className="bg-background fixed inset-0 z-50 flex flex-col">
       {/* 固定ヘッダー */}
       <header
+        ref={headerRef}
         className="flex h-14 shrink-0 items-center justify-between border-b px-4
           pt-[env(safe-area-inset-top)]"
       >
@@ -57,6 +72,11 @@ export function ComposeOverlay({ onClose, onSubmit }: Props) {
           }
         }}
         placeholder="ログを入力…"
+        style={
+          textareaHeight !== null
+            ? { height: `${textareaHeight}px` }
+            : undefined
+        }
         className="h-[calc(100dvh-3.5rem)] flex-none resize-none overflow-y-auto
           rounded-none border-none p-4 text-base shadow-none
           focus-visible:ring-0"
