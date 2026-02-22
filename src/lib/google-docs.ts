@@ -180,6 +180,32 @@ export async function appendHeadingToDoc(
 }
 
 /**
+ * 新しい Google Docs ドキュメントを作成する。
+ */
+export async function createGoogleDoc(
+  title: string,
+  accessToken: string,
+): Promise<{ id: string; title: string }> {
+  const res = await fetch("https://docs.googleapis.com/v1/documents", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ title }),
+  });
+  if (res.status === 401 || res.status === 403) {
+    throw new AuthExpiredError();
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Docs API error ${res.status}: ${JSON.stringify(err)}`);
+  }
+  const doc = (await res.json()) as { documentId: string; title: string };
+  return { id: doc.documentId, title: doc.title };
+}
+
+/**
  * ドキュメント内の最後の H2 見出し以降のテキストを段落ごとの配列で返す（Step 2 で使用）。
  * H2 が存在しない場合は空配列を返す。
  */

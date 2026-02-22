@@ -1,5 +1,6 @@
 import {
   CalendarPlus,
+  FilePlus,
   FileText,
   LogOut,
   MoreHorizontal,
@@ -48,6 +49,7 @@ interface AppMenuProps {
   refreshing: boolean;
   addingHeading: boolean;
   lastSyncedAt: Date | null;
+  onCreateDoc: () => void;
   onPickDoc: () => void;
   onAddTodayHeading: () => void;
   onRefresh: () => void;
@@ -59,6 +61,7 @@ export function AppMenu({
   refreshing,
   addingHeading,
   lastSyncedAt,
+  onCreateDoc,
   onPickDoc,
   onAddTodayHeading,
   onRefresh,
@@ -84,6 +87,10 @@ export function AppMenu({
             {selectedDoc.name}
           </DropdownMenuLabel>
         )}
+        <DropdownMenuItem onClick={onCreateDoc}>
+          <FilePlus className="size-4" />
+          ドキュメントを新規作成
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={onPickDoc}>
           <FileText className="size-4" />
           {selectedDoc ? "ドキュメントを変更" : "ドキュメントを選択"}

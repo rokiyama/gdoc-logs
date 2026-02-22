@@ -5,12 +5,14 @@ import { toast } from "sonner";
 
 import { AppMenu } from "@/components/AppMenu";
 import { ComposeOverlay } from "@/components/ComposeOverlay";
+import { CreateDocDialog } from "@/components/CreateDocDialog";
 import { DuplicateHeadingDialog } from "@/components/DuplicateHeadingDialog";
 import { TodaysDiary } from "@/components/TodaysDiary";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { useAddHeading } from "@/hooks/useAddHeading";
 import { useAuth } from "@/hooks/useAuth";
+import { useCreateDoc } from "@/hooks/useCreateDoc";
 import { useDocSync } from "@/hooks/useDocSync";
 import { usePendingSubmit } from "@/hooks/usePendingSubmit";
 import { useSelectedDoc } from "@/hooks/useSelectedDoc";
@@ -65,6 +67,17 @@ export default function App() {
     docId: selectedDoc?.id ?? null,
     onAuthExpired: handleAuthExpired,
     onSuccess: refresh,
+  });
+
+  const [createDocDialogOpen, setCreateDocDialogOpen] = useState(false);
+  const { creating, handleCreateDoc } = useCreateDoc({
+    accessToken,
+    onAuthExpired: handleAuthExpired,
+    onDocCreated: (id, name) => {
+      setCurrentHeading(null);
+      selectDoc(id, name);
+      setCreateDocDialogOpen(false);
+    },
   });
 
   const login = useGoogleLogin({
@@ -134,6 +147,7 @@ export default function App() {
                 refreshing={refreshing}
                 addingHeading={addingHeading}
                 lastSyncedAt={lastSyncedAt}
+                onCreateDoc={() => setCreateDocDialogOpen(true)}
                 onPickDoc={() => void handlePickDoc()}
                 onAddTodayHeading={() => void handleAddTodayHeading()}
                 onRefresh={handleManualRefresh}
@@ -215,6 +229,14 @@ export default function App() {
       <DuplicateHeadingDialog
         date={duplicateWarningDate}
         onClose={clearDuplicateWarning}
+      />
+
+      {/* 新規ドキュメント作成ダイアログ */}
+      <CreateDocDialog
+        open={createDocDialogOpen}
+        creating={creating}
+        onConfirm={(title) => void handleCreateDoc(title)}
+        onClose={() => setCreateDocDialogOpen(false)}
       />
 
       <Toaster />
