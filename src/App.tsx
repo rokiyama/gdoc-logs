@@ -111,10 +111,7 @@ export default function App() {
   }
 
   return (
-    <div
-      className="bg-background relative flex h-dvh flex-col
-        pb-[env(safe-area-inset-bottom)]"
-    >
+    <div className="bg-background relative flex h-dvh flex-col">
       {/* ヘッダー */}
       <header
         className="absolute inset-x-0 top-0 z-10 px-2

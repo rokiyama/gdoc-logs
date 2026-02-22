@@ -43,19 +43,20 @@ export function ComposeOverlay({ onClose, onSubmit }: Props) {
       {/* 固定ヘッダー */}
       <header
         ref={headerRef}
-        className="flex h-14 shrink-0 items-center justify-between border-b px-4
-          pt-[env(safe-area-inset-top)]"
+        className="shrink-0 border-b pt-[env(safe-area-inset-top)]"
       >
-        <Button variant="ghost" onClick={onClose}>
-          キャンセル
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          className="rounded-full px-5"
-        >
-          送信
-        </Button>
+        <div className="flex h-14 items-center justify-between px-4">
+          <Button variant="ghost" onClick={onClose}>
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            className="rounded-full px-5"
+          >
+            送信
+          </Button>
+        </div>
       </header>
 
       {/* テキストエリア（高さ固定） */}
