@@ -200,13 +200,13 @@ Google OAuth implicit flow のトークン有効期限は 1 時間。
 
 App.tsx が 410 行に肥大化したため分割。
 
-| ファイル | 役割 |
-|---|---|
-| `src/hooks/useDocSync.ts` | `refreshKey` / `refreshing` / `lastSyncedAt` 管理 + `visibilitychange` 監視。`handleManualRefresh`（トースト付き）と `refresh`（サイレント）を分離 |
-| `src/hooks/useAddHeading.ts` | 今日の見出し追加ロジック・重複チェック状態。`getTodayDateString` もここに |
-| `src/components/AppMenu.tsx` | `DropdownMenu` JSX 全体。ビルド情報の組み立て（`getBuildInfo`）もここに |
-| `src/components/DuplicateHeadingDialog.tsx` | 重複見出し警告 Dialog |
-| `src/App.tsx` | 認証フロー・ルーティング・レイアウトのみのオーケストレータ（160 行） |
+| ファイル                                    | 役割                                                                                                                                               |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/hooks/useDocSync.ts`                   | `refreshKey` / `refreshing` / `lastSyncedAt` 管理 + `visibilitychange` 監視。`handleManualRefresh`（トースト付き）と `refresh`（サイレント）を分離 |
+| `src/hooks/useAddHeading.ts`                | 今日の見出し追加ロジック・重複チェック状態。`getTodayDateString` もここに                                                                          |
+| `src/components/AppMenu.tsx`                | `DropdownMenu` JSX 全体。ビルド情報の組み立て（`getBuildInfo`）もここに                                                                            |
+| `src/components/DuplicateHeadingDialog.tsx` | 重複見出し警告 Dialog                                                                                                                              |
+| `src/App.tsx`                               | 認証フロー・ルーティング・レイアウトのみのオーケストレータ（160 行）                                                                               |
 
 ---
 
