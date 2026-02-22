@@ -20,25 +20,15 @@ import {
 /** ビルド情報文字列を組み立てる（CI でのみ値が入る） */
 function getBuildInfo(): string | null {
   const hash = import.meta.env.VITE_GIT_COMMIT_HASH;
-  const commitDate = import.meta.env.VITE_GIT_COMMIT_DATE;
   const buildDate = import.meta.env.VITE_BUILD_DATE;
   if (!hash && !buildDate) return null;
 
   const parts: string[] = [];
   if (hash) parts.push(hash);
-  if (commitDate) {
-    const d = new Date(commitDate);
-    parts.push(
-      d.toLocaleDateString("ja-JP") +
-        " " +
-        d.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
-    );
-  }
   if (buildDate) {
     const d = new Date(buildDate);
     parts.push(
-      "build: " +
-        d.toLocaleDateString("ja-JP") +
+      d.toLocaleDateString("ja-JP") +
         " " +
         d.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
     );
@@ -80,7 +70,7 @@ export function AppMenu({
         <Button
           variant="ghost"
           size="icon"
-          className="bg-background/40 rounded-full shadow-md backdrop-blur-xs"
+          className="bg-background/80 rounded-full shadow-xs backdrop-blur-md"
           aria-label="メニューを開く"
         >
           <MoreHorizontal className="size-5" />
@@ -139,7 +129,9 @@ export function AppMenu({
           <>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-muted-foreground font-normal">
-              <span className="font-mono text-xs">{buildInfo}</span>
+              <span className="font-mono text-[10px]">
+                Version: {buildInfo}
+              </span>
             </DropdownMenuLabel>
           </>
         )}

@@ -50,7 +50,7 @@ function DropdownMenuContent({
           max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem]
           origin-(--radix-dropdown-menu-content-transform-origin)
           overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md
-          backdrop-blur-[2px]`,
+          backdrop-blur-md`,
           className,
         )}
         {...props}

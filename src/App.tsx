@@ -105,8 +105,8 @@ export default function App() {
 
           {/* 中央: タイトル + サブタイトル */}
           <div
-            className="bg-background/40 flex flex-col items-center
-              justify-center rounded-full px-4 py-1 shadow-md backdrop-blur-sm"
+            className="bg-background/80 flex flex-col items-center
+              justify-center rounded-full px-4 py-1 shadow-xs backdrop-blur-md"
           >
             <span className="text-sm font-semibold whitespace-nowrap">
               gdoc-logs
