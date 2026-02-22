@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-import { extractContentAfterLastH2, readDoc } from "@/lib/google-docs";
+import {
+  AuthExpiredError,
+  extractContentAfterLastH2,
+  readDoc,
+} from "@/lib/google-docs";
 import type { GDocsDocument } from "@/lib/google-docs";
 
 interface Props {
@@ -9,6 +13,7 @@ interface Props {
   refreshKey: number;
   onLoaded?: () => void;
   onHeadingChange?: (heading: string) => void;
+  onAuthExpired?: () => void;
 }
 
 type FetchState =
@@ -47,6 +52,7 @@ export function TodaysDiary({
   refreshKey,
   onLoaded,
   onHeadingChange,
+  onAuthExpired,
 }: Props) {
   const [state, setState] = useState<FetchState>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -66,11 +72,15 @@ export function TodaysDiary({
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setState({
-            ok: false,
-            message:
-              err instanceof Error ? err.message : "読み込みに失敗しました",
-          });
+          if (err instanceof AuthExpiredError) {
+            onAuthExpired?.();
+          } else {
+            setState({
+              ok: false,
+              message:
+                err instanceof Error ? err.message : "読み込みに失敗しました",
+            });
+          }
           onLoaded?.();
         }
       });
@@ -78,7 +88,14 @@ export function TodaysDiary({
     return () => {
       cancelled = true;
     };
-  }, [docId, accessToken, refreshKey, onLoaded, onHeadingChange]);
+  }, [
+    docId,
+    accessToken,
+    refreshKey,
+    onLoaded,
+    onHeadingChange,
+    onAuthExpired,
+  ]);
 
   // データ読み込み後に最下部へスクロール
   useEffect(() => {

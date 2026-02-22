@@ -28,7 +28,7 @@ import { openGooglePicker } from "@/lib/google-picker";
 const SCOPES = "https://www.googleapis.com/auth/documents";
 
 export default function App() {
-  const { accessToken, setToken, clearToken } = useAuth();
+  const { accessToken, expiresAt, setToken, clearToken } = useAuth();
   const { selectedDoc, selectDoc } = useSelectedDoc();
   const [composeOpen, setComposeOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -36,6 +36,21 @@ export default function App() {
   const [currentHeading, setCurrentHeading] = useState<string | null>(null);
   // 手動リロード時のみトーストを出すためのフラグ
   const isManualRefresh = useRef(false);
+
+  // 認証エラー（401/403）またはタイマー期限切れ時の共通ハンドラ
+  const handleAuthExpired = useCallback(() => {
+    clearToken();
+    setCurrentHeading(null);
+    toast.error("認証の有効期限が切れました。再度サインインしてください。");
+  }, [clearToken]);
+
+  // トークン期限切れをタイマーで自動検知してログイン画面に戻す
+  useEffect(() => {
+    if (!accessToken || !expiresAt) return;
+    const remaining = expiresAt - Date.now();
+    const id = setTimeout(handleAuthExpired, Math.max(0, remaining));
+    return () => clearTimeout(id);
+  }, [accessToken, expiresAt, handleAuthExpired]);
 
   const login = useGoogleLogin({
     onSuccess: (response) =>
@@ -214,6 +229,7 @@ export default function App() {
             refreshKey={refreshKey}
             onLoaded={handleLoaded}
             onHeadingChange={setCurrentHeading}
+            onAuthExpired={handleAuthExpired}
           />
         )}
       </main>
@@ -237,6 +253,7 @@ export default function App() {
           selectedDoc={selectedDoc}
           onClose={() => setComposeOpen(false)}
           onSuccess={handlePostSuccess}
+          onAuthExpired={handleAuthExpired}
         />
       )}
 

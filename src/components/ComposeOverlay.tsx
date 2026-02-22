@@ -5,13 +5,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { SelectedDoc } from "@/hooks/useSelectedDoc";
-import { appendTextToDoc } from "@/lib/google-docs";
+import { AuthExpiredError, appendTextToDoc } from "@/lib/google-docs";
 
 interface Props {
   accessToken: string;
   selectedDoc: SelectedDoc;
   onClose: () => void;
   onSuccess: () => void;
+  onAuthExpired?: () => void;
 }
 
 export function ComposeOverlay({
@@ -19,6 +20,7 @@ export function ComposeOverlay({
   selectedDoc,
   onClose,
   onSuccess,
+  onAuthExpired,
 }: Props) {
   const DRAFT_KEY = "gdoc_logs_draft";
   const [text, setText] = useState(() => localStorage.getItem(DRAFT_KEY) ?? "");
@@ -41,8 +43,13 @@ export function ComposeOverlay({
       toast.success("追記しました");
       onSuccess();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "追記に失敗しました";
-      toast.error(message);
+      if (err instanceof AuthExpiredError) {
+        onAuthExpired?.();
+      } else {
+        const message =
+          err instanceof Error ? err.message : "追記に失敗しました";
+        toast.error(message);
+      }
     } finally {
       setSubmitting(false);
     }

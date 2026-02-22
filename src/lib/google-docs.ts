@@ -33,6 +33,15 @@ export interface GDocsDocument {
   };
 }
 
+// ---- エラークラス ----
+
+export class AuthExpiredError extends Error {
+  constructor() {
+    super("認証の有効期限が切れました。再度サインインしてください。");
+    this.name = "AuthExpiredError";
+  }
+}
+
 // ---- API 関数 ----
 
 /**
@@ -65,6 +74,9 @@ export async function appendTextToDoc(
       }),
     },
   );
+  if (res.status === 401 || res.status === 403) {
+    throw new AuthExpiredError();
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(`Docs API error ${res.status}: ${JSON.stringify(err)}`);
@@ -81,6 +93,9 @@ export async function readDoc(
   const res = await fetch(`https://docs.googleapis.com/v1/documents/${docId}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
+  if (res.status === 401 || res.status === 403) {
+    throw new AuthExpiredError();
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(`Docs API error ${res.status}: ${JSON.stringify(err)}`);
