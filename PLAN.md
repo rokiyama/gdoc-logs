@@ -153,6 +153,29 @@ VITE_GOOGLE_API_KEY=...                               # Google Picker 用 API �
 
 ---
 
+### Step 2-4: 認証トークン期限切れ対応 ✅ 完了
+
+**問題**
+
+Google OAuth implicit flow のトークン有効期限は 1 時間。
+`useState(loadToken)` はマウント時の 1 回のみ評価されるため、起動後にトークンが期限切れになっても
+`accessToken` state に古いトークン文字列が残り、API 呼び出し時に 401 エラーが表示されていた。
+
+**修正内容**
+
+- `AuthExpiredError` クラスを `google-docs.ts` に追加。401/403 時にこれを throw
+- `useAuth.ts` に `expiresAt` state を追加して返却
+- `App.tsx` で `setTimeout` によるタイマーを設定し、トークン期限に達したら自動でログイン画面に戻す
+- `TodaysDiary` / `ComposeOverlay` に `onAuthExpired` prop を追加し、API 呼び出し中の期限切れにも対応
+
+**ハマりポイント**
+
+- タイマーが `0ms` になる（既に期限切れ）ケースは `Math.max(0, remaining)` で安全に処理
+- `handleAuthExpired` を `useCallback` でラップし `useEffect` の deps 配列に含めることで
+  `react-hooks/exhaustive-deps` ルールを通過させつつ安定した参照を維持
+
+---
+
 ### Step 3: 音声入力（OpenAI Whisper API）（未着手）
 
 **必要な追加環境変数**
