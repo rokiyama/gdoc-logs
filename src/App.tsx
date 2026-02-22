@@ -126,9 +126,9 @@ export default function App() {
             )}
           </div>
 
-          {/* 右: メニュー or サインインボタン */}
+          {/* 右: メニュー（未ログイン時は空） */}
           <div className="flex justify-end">
-            {accessToken ? (
+            {accessToken && (
               <AppMenu
                 selectedDoc={selectedDoc}
                 refreshing={refreshing}
@@ -139,10 +139,6 @@ export default function App() {
                 onRefresh={handleManualRefresh}
                 onSignOut={handleSignOut}
               />
-            ) : (
-              <Button onClick={() => login()} size="sm">
-                Googleでログイン
-              </Button>
             )}
           </div>
         </div>
@@ -151,19 +147,30 @@ export default function App() {
       {/* メインコンテンツ */}
       <main className="min-h-0 flex-1">
         {!accessToken ? (
-          <p
-            className="text-muted-foreground px-4
-              pt-[calc(4rem+env(safe-area-inset-top))] pb-6 text-sm"
+          <div
+            className="flex h-full flex-col items-center justify-center gap-6
+              px-8 text-center"
           >
-            Google でサインインすると Google Docs に追記できます。
-          </p>
+            <p className="text-muted-foreground text-sm">
+              gdoc-logs は Google Docs
+              のドキュメントに「つぶやき・メモ・できごと」を記録するアプリです。
+              <br />
+              Google でログインして、記録を始めましょう。
+            </p>
+            <Button onClick={() => login()}>Googleでログイン</Button>
+          </div>
         ) : !selectedDoc ? (
-          <p
-            className="text-muted-foreground px-4
-              pt-[calc(4rem+env(safe-area-inset-top))] pb-6 text-sm"
+          <div
+            className="flex h-full flex-col items-center justify-center gap-4
+              px-8 text-center"
           >
-            メニューからドキュメントを選択してください。
-          </p>
+            <p className="text-muted-foreground text-sm">
+              gdoc-logs は Google Docs
+              のドキュメントに「つぶやき・メモ・できごと」を記録するアプリです。
+              <br />
+              メニューからドキュメントを作成・選択して、記録を始めましょう。
+            </p>
+          </div>
         ) : (
           <TodaysDiary
             docId={selectedDoc.id}
