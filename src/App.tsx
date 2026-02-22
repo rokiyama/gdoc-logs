@@ -1,5 +1,5 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import { Pencil } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useAddHeading } from "@/hooks/useAddHeading";
 import { useAuth } from "@/hooks/useAuth";
 import { useDocSync } from "@/hooks/useDocSync";
+import { usePendingSubmit } from "@/hooks/usePendingSubmit";
 import { useSelectedDoc } from "@/hooks/useSelectedDoc";
 import { openGooglePicker } from "@/lib/google-picker";
 
@@ -46,6 +47,13 @@ export default function App() {
     const id = setTimeout(handleAuthExpired, Math.max(0, remaining));
     return () => clearTimeout(id);
   }, [accessToken, expiresAt, handleAuthExpired]);
+
+  const { submitting, handleOptimisticSubmit } = usePendingSubmit({
+    accessToken,
+    selectedDoc,
+    onAuthExpired: handleAuthExpired,
+    onSuccess: refresh,
+  });
 
   const {
     addingHeading,
@@ -171,26 +179,27 @@ export default function App() {
       {/* FAB（投稿ボタン） */}
       <Button
         onClick={() => setComposeOpen(true)}
-        disabled={!accessToken || !selectedDoc}
+        disabled={!accessToken || !selectedDoc || submitting}
         className="fixed right-5
           bottom-[calc(1.25rem+env(safe-area-inset-bottom))] size-14
           rounded-full shadow-lg"
         aria-label="投稿する"
       >
-        <Pencil className="size-5" />
+        {submitting ? (
+          <Loader2 className="size-5 animate-spin" />
+        ) : (
+          <Pencil className="size-5" />
+        )}
       </Button>
 
       {/* 投稿オーバーレイ */}
       {composeOpen && accessToken && selectedDoc && (
         <ComposeOverlay
-          accessToken={accessToken}
-          selectedDoc={selectedDoc}
           onClose={() => setComposeOpen(false)}
-          onSuccess={() => {
+          onSubmit={(text) => {
             setComposeOpen(false);
-            refresh();
+            handleOptimisticSubmit(text);
           }}
-          onAuthExpired={handleAuthExpired}
         />
       )}
 

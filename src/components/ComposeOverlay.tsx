@@ -1,58 +1,27 @@
-import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import type { SelectedDoc } from "@/hooks/useSelectedDoc";
-import { AuthExpiredError, appendTextToDoc } from "@/lib/google-docs";
+import { DRAFT_KEY } from "@/lib/storage";
 
 interface Props {
-  accessToken: string;
-  selectedDoc: SelectedDoc;
   onClose: () => void;
-  onSuccess: () => void;
-  onAuthExpired?: () => void;
+  onSubmit: (text: string) => void;
 }
 
-export function ComposeOverlay({
-  accessToken,
-  selectedDoc,
-  onClose,
-  onSuccess,
-  onAuthExpired,
-}: Props) {
-  const DRAFT_KEY = "gdoc_logs_draft";
+export function ComposeOverlay({ onClose, onSubmit }: Props) {
   const [text, setText] = useState(() => localStorage.getItem(DRAFT_KEY) ?? "");
-  const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const canSubmit = text.trim().length > 0 && !submitting;
+  const canSubmit = text.trim().length > 0;
 
   useEffect(() => {
     textareaRef.current?.focus();
   }, []);
 
-  async function handleSubmit() {
+  function handleSubmit() {
     if (!canSubmit) return;
-
-    setSubmitting(true);
-    try {
-      await appendTextToDoc(selectedDoc.id, text.trim(), accessToken);
-      localStorage.removeItem(DRAFT_KEY);
-      toast.success("追記しました");
-      onSuccess();
-    } catch (err) {
-      if (err instanceof AuthExpiredError) {
-        onAuthExpired?.();
-      } else {
-        const message =
-          err instanceof Error ? err.message : "追記に失敗しました";
-        toast.error(message);
-      }
-    } finally {
-      setSubmitting(false);
-    }
+    onSubmit(text.trim());
   }
 
   return (
@@ -62,20 +31,15 @@ export function ComposeOverlay({
         className="flex h-14 shrink-0 items-center justify-between border-b px-4
           pt-[env(safe-area-inset-top)]"
       >
-        <Button variant="ghost" onClick={onClose} disabled={submitting}>
+        <Button variant="ghost" onClick={onClose}>
           キャンセル
         </Button>
         <Button
-          onClick={() => void handleSubmit()}
+          onClick={handleSubmit}
           disabled={!canSubmit}
-          className="relative rounded-full px-5"
+          className="rounded-full px-5"
         >
-          {submitting && (
-            <span className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="size-4 animate-spin" />
-            </span>
-          )}
-          <span className={submitting ? "invisible" : undefined}>送信</span>
+          送信
         </Button>
       </header>
 
@@ -97,7 +61,7 @@ export function ComposeOverlay({
           border-none p-4 text-base shadow-none focus-visible:ring-0"
         onKeyDown={(e) => {
           if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-            void handleSubmit();
+            handleSubmit();
           }
         }}
       />

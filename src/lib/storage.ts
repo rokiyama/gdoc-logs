@@ -1,3 +1,7 @@
+export const DRAFT_KEY = "gdoc_logs_draft";
+
+export const clearDraft = () => localStorage.removeItem(DRAFT_KEY);
+
 const SELECTED_DOC_KEY = "gdoc-logs:selectedDocId";
 const SELECTED_DOC_NAME_KEY = "gdoc-logs:selectedDocName";
 
