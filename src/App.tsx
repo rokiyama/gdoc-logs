@@ -16,9 +16,8 @@ import { useCreateDoc } from "@/hooks/useCreateDoc";
 import { useDocSync } from "@/hooks/useDocSync";
 import { usePendingSubmit } from "@/hooks/usePendingSubmit";
 import { useSelectedDoc } from "@/hooks/useSelectedDoc";
+import { SCOPES } from "@/lib/auth-config";
 import { openGooglePicker } from "@/lib/google-picker";
-
-const SCOPES = "https://www.googleapis.com/auth/documents";
 
 export default function App() {
   const { accessToken, expiresAt, setToken, clearToken } = useAuth();
