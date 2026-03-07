@@ -68,7 +68,8 @@ export function useAuth(): AuthState {
 
   const explicitLogin = useGoogleLogin({
     scope: SCOPES,
-    onSuccess: (response) => setToken(response.access_token, response.expires_in),
+    onSuccess: (response) =>
+      setToken(response.access_token, response.expires_in),
     onError: () => console.error("Google login failed"),
   });
 
@@ -138,5 +139,12 @@ export function useAuth(): AuthState {
     return () => clearInterval(id);
   }, [accessToken, expiresAt, silentLogin]);
 
-  return { accessToken, expiresAt, login: explicitLogin, setToken, clearToken, getValidToken };
+  return {
+    accessToken,
+    expiresAt,
+    login: explicitLogin,
+    setToken,
+    clearToken,
+    getValidToken,
+  };
 }

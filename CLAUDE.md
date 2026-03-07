@@ -9,6 +9,7 @@ source ~/.nvm/nvm.sh && nvm use && <command>
 ```
 
 例:
+
 - lint: `source ~/.nvm/nvm.sh && nvm use && pnpm lint`
 - dev: `source ~/.nvm/nvm.sh && nvm use && pnpm dev`
 - build: `source ~/.nvm/nvm.sh && nvm use && pnpm build`
