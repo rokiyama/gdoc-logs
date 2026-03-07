@@ -42,6 +42,9 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    port: 5174,
+  },
   base: "/gdoc-logs/",
   resolve: {
     alias: {
