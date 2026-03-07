@@ -11,5 +11,14 @@ source ~/.nvm/nvm.sh && nvm use && <command>
 例:
 
 - lint: `source ~/.nvm/nvm.sh && nvm use && pnpm lint`
+- format: `source ~/.nvm/nvm.sh && nvm use && pnpm format`
 - dev: `source ~/.nvm/nvm.sh && nvm use && pnpm dev`
 - build: `source ~/.nvm/nvm.sh && nvm use && pnpm build`
+
+## コミット前
+
+コミット前に必ずフォーマットを実行すること:
+
+```bash
+source ~/.nvm/nvm.sh && nvm use && pnpm format && pnpm lint
+```
