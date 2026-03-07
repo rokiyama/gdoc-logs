@@ -1,4 +1,3 @@
-import { useGoogleLogin } from "@react-oauth/google";
 import { Loader2, Pencil } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -16,11 +15,10 @@ import { useCreateDoc } from "@/hooks/useCreateDoc";
 import { useDocSync } from "@/hooks/useDocSync";
 import { usePendingSubmit } from "@/hooks/usePendingSubmit";
 import { useSelectedDoc } from "@/hooks/useSelectedDoc";
-import { SCOPES } from "@/lib/auth-config";
 import { openGooglePicker } from "@/lib/google-picker";
 
 export default function App() {
-  const { accessToken, expiresAt, setToken, clearToken } = useAuth();
+  const { accessToken, expiresAt, login, clearToken } = useAuth();
   const { selectedDoc, selectDoc } = useSelectedDoc();
   const [composeOpen, setComposeOpen] = useState(false);
   const [currentHeading, setCurrentHeading] = useState<string | null>(null);
@@ -77,13 +75,6 @@ export default function App() {
       selectDoc(id, name);
       setCreateDocDialogOpen(false);
     },
-  });
-
-  const login = useGoogleLogin({
-    onSuccess: (response) =>
-      setToken(response.access_token, response.expires_in),
-    onError: () => console.error("Google login failed"),
-    scope: SCOPES,
   });
 
   async function handlePickDoc() {

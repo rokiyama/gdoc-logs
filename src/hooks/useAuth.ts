@@ -6,6 +6,7 @@ import { SCOPES } from "@/lib/auth-config";
 export interface AuthState {
   accessToken: string | null;
   expiresAt: number | null;
+  login: () => void;
   setToken: (token: string, expiresIn?: number) => void;
   clearToken: () => void;
   getValidToken: () => Promise<string | null>;
@@ -64,6 +65,12 @@ export function useAuth(): AuthState {
     setAccessToken(null);
     setExpiresAt(null);
   }, []);
+
+  const explicitLogin = useGoogleLogin({
+    scope: SCOPES,
+    onSuccess: (response) => setToken(response.access_token, response.expires_in),
+    onError: () => console.error("Google login failed"),
+  });
 
   const silentLogin = useGoogleLogin({
     scope: SCOPES,
@@ -131,5 +138,5 @@ export function useAuth(): AuthState {
     return () => clearInterval(id);
   }, [accessToken, expiresAt, silentLogin]);
 
-  return { accessToken, expiresAt, setToken, clearToken, getValidToken };
+  return { accessToken, expiresAt, login: explicitLogin, setToken, clearToken, getValidToken };
 }
